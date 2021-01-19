@@ -7,3 +7,7 @@
 
 #![cfg_attr(not(test), no_std)]
 #![deny(missing_docs, broken_intra_doc_links)]
+
+mod flat;
+
+pub use self::flat::Flat;
