@@ -2,7 +2,7 @@ use core::{iter, ops};
 
 use fixed::FixedU32;
 
-/// A flat acceleration profile
+/// Flat acceleration profile
 ///
 /// This is the simplest possible acceleration profile, as it produces just a
 /// constant velocity. Please note that this is of limited use, and should
@@ -45,13 +45,14 @@ where
         Self { delay }
     }
 
-    /// Create the acceleration ramp
+    /// Generate the acceleration ramp
     ///
-    /// The `num_steps` argument defines how many steps you want to take.
-    /// Returns an iterator that yields one delay value per step, and `None`
-    /// after that. Since this is the flat acceleration profile, all delay
-    /// values yielded will be the same (as defined by the target velocity
-    /// passed to the constructor).
+    /// The `num_steps` argument defines the number of steps to take. Returns an
+    /// iterator that yields one delay value per step, and `None` after that.
+    ///
+    /// Since this is the flat acceleration profile, all delay values yielded
+    /// will be the same (as defined by the target speed passed to the
+    /// constructor).
     pub fn ramp(&self, num_steps: usize) -> impl Iterator<Item = Num> {
         iter::repeat(self.delay.clone()).take(num_steps)
     }
