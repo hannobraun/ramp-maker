@@ -62,15 +62,19 @@ mod tests {
     use crate::Flat;
 
     #[test]
+    fn flat_should_produce_correct_number_of_steps() {
+        let flat = Flat::new(2.0); // steps per second
+
+        let num_steps = 200;
+        assert_eq!(flat.ramp(num_steps).count(), num_steps);
+    }
+
+    #[test]
     fn flat_should_produce_constant_velocity() {
         let flat = Flat::new(2.0); // steps per second
 
-        let mut num_steps = 200;
-        for delay in flat.ramp(num_steps) {
+        for delay in flat.ramp(200) {
             assert_eq!(delay, 0.5);
-            num_steps = num_steps.checked_sub(1).unwrap();
         }
-
-        assert_eq!(num_steps, 0);
     }
 }
