@@ -40,8 +40,8 @@ where
     /// # Panics
     ///
     /// Panics, if `target_velocity` is zero.
-    pub fn new(target_velocity: Num) -> Self {
-        let delay = Num::one() / target_velocity;
+    pub fn new(target_speed: Num) -> Self {
+        let delay = Num::one() / target_speed;
         Self { delay }
     }
 
