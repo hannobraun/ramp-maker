@@ -5,7 +5,8 @@ authors = ["Hanno Braun <hanno@braun-embedded.com>"]
 edition = "2018"
 
 [dependencies]
-typenum = "1.12.0"
+fixed-sqrt = "0.2.4"
+typenum    = "1.12.0"
 
 [dependencies.fixed]
 version  = "1.5.0"
