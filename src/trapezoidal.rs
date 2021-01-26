@@ -173,6 +173,20 @@ impl Sqrt for f64 {
     }
 }
 
+#[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
+impl Sqrt for f32 {
+    fn sqrt2(self) -> Self {
+        libm::sqrtf(self)
+    }
+}
+
+#[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
+impl Sqrt for f64 {
+    fn sqrt2(self) -> Self {
+        libm::sqrt(self)
+    }
+}
+
 macro_rules! impl_fixed {
     ($($num:ident, ($($bound:ident),*);)*) => {
         $(
