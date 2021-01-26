@@ -13,6 +13,16 @@ use fixed::FixedU32;
 /// this, if the speed and the load on the motor are low enough. Otherwise, this
 /// will definitely produce missed steps.
 ///
+/// # Unit of Time
+///
+/// This code is agnostic on which unit of time is used. If you provide the
+/// target speed in steps per second, the unit of the delay returned will be
+/// seconds.
+///
+/// This allows you to pass the target speed in steps per number of timer counts
+/// for the timer you're using, completely eliminating any conversion overhead
+/// for the delay.
+///
 /// # Type Parameter
 ///
 /// The type parameter `Num` defines the type that is used to represent the
