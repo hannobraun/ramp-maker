@@ -46,6 +46,10 @@ use num_traits::{clamp_max, clamp_min};
 /// be ideal for 8- or 16-bit microcontrollers, or target platforms where
 /// hardware support for floating point numbers is available. You can override
 /// it with other types from the `fixed` crate, or `f32`/`f64`, for example.
+///
+/// Please note that by default, support for `f32`/`f64` is not available. Check
+/// out the documentation on Cargo features from the documentation in the root
+/// module to learn how to enable it.
 pub struct Trapezoidal<Num = FixedU32<typenum::U16>> {
     delay_min: Num,
     delay_initial: Num,
