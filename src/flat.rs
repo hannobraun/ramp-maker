@@ -26,9 +26,8 @@ use fixed::FixedU32;
 /// # Type Parameter
 ///
 /// The type parameter `Num` defines the type that is used to represent the
-/// target speed and the delay per step. By default, this is set to
-/// `fixed::FixedU32<typenum::U8>`, that is a fixed-point number, backed by a
-/// `u32`, and 8 fractional bits.
+/// target speed and the delay per step. It is set to a 32-bit fixed-point
+/// number type by default.
 ///
 /// This default is appropriate for 32-bit microcontrollers, but it might not
 /// be ideal for 8- or 16-bit microcontrollers, or target platforms where
