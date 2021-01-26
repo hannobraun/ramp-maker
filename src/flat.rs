@@ -5,18 +5,18 @@ use fixed::FixedU32;
 /// Flat acceleration profile
 ///
 /// This is the simplest possible acceleration profile, as it produces just a
-/// constant velocity. Please note that this is of limited use, and should
-/// probably be restricted to testing.
+/// constant speed. Please note that this is of limited use, and should probably
+/// be restricted to testing.
 ///
 /// Theoretically, this profile produces infinite acceleration/deceleration at
 /// the beginning and end of the movement. In practice, you might get away with
-/// this, if the velocity and the load on the motor are low enough. Otherwise,
-/// this will definitely produce missed steps.
+/// this, if the speed and the load on the motor are low enough. Otherwise, this
+/// will definitely produce missed steps.
 ///
 /// # Type Parameter
 ///
 /// The type parameter `Num` defines the type that is used to represent the
-/// target velocity and the delay per step. By default, this is set to
+/// target speed and the delay per step. By default, this is set to
 /// `fixed::FixedU32<typenum::U8>`, that is a fixed-point number, backed by a
 /// `u32`, and 8 fractional bits.
 ///
@@ -32,10 +32,10 @@ impl<Num> Flat<Num>
 where
     Num: Clone + num_traits::One + ops::Div<Output = Num>,
 {
-    /// Create a `Flat` instance by passing a target velocity
+    /// Create a `Flat` instance by passing a target speed
     ///
-    /// The target velocity is specified in steps per second and must not be
-    /// zero.
+    /// The target speed is specified in steps per unit of time (see top-level
+    /// documentation of this struct) and must not be zero.
     ///
     /// # Panics
     ///
