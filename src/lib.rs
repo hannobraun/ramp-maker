@@ -9,5 +9,6 @@
 #![deny(missing_docs, broken_intra_doc_links)]
 
 mod flat;
+mod trapezoidal;
 
-pub use self::flat::Flat;
+pub use self::{flat::Flat, trapezoidal::Trapezoidal};
