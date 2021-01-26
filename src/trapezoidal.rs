@@ -159,14 +159,14 @@ pub trait Sqrt {
     fn sqrt2(self) -> Self;
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "std"))]
 impl Sqrt for f32 {
     fn sqrt2(self) -> Self {
         self.sqrt()
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "std"))]
 impl Sqrt for f64 {
     fn sqrt2(self) -> Self {
         self.sqrt()

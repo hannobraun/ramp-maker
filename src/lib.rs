@@ -5,7 +5,7 @@
 //!
 //! [Step/Dir]: https://crates.io/crates/step-dir
 
-#![cfg_attr(not(test), no_std)]
+#![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #![deny(missing_docs, broken_intra_doc_links)]
 
 mod flat;
