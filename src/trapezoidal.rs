@@ -63,9 +63,9 @@ where
         + num_traits::One
         + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
+        + ops::Sub<Output = Num>
         + ops::Mul<Output = Num>
         + ops::Div<Output = Num>
-        + ops::Neg<Output = Num>
         + Sqrt,
 {
     /// Create a new instance of `Trapezoidal`
@@ -108,27 +108,24 @@ where
         let mut delay_prev = self.delay_initial;
 
         (1..=num_steps).map(move |step| {
-            // The multiplier that depends on whether we're currently ramping up
-            // or down. See explanation following [20] in the referenced paper.
+            // Compute the delay for the next step. See [20] in the referenced
+            // paper.
             //
             // We basically treat our trapezoidal acceleration profile like a
             // triangular one here. This works because we're actually
             // calculating a triangular profile, as far as this algorithm is
-            // concerned. We just turn it into a trapezoidal profile by clamping
-            // the delay value before returning it, basically cutting off the
-            // top.
-            let m = if step <= num_steps / 2 {
+            // concerned. We just turn it into a trapezoidal profile further
+            // below, by clamping the delay value before returning it, basically
+            // cutting off the top.
+            let delay_next = if step <= num_steps / 2 {
                 // Ramping up
-                -target_accel
+                delay_prev
+                    * (Num::one() - target_accel * delay_prev * delay_prev)
             } else {
                 // Ramping down
-                target_accel
+                delay_prev
+                    * (Num::one() + target_accel * delay_prev * delay_prev)
             };
-
-            // Compute the delay for the next step. See [20] in the referenced
-            // paper.
-            let delay_next =
-                delay_prev * (Num::one() + m * delay_prev * delay_prev);
 
             delay_prev = delay_next;
 
