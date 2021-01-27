@@ -257,6 +257,8 @@ mod tests {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
+                println!("{}: {}, {:?}", i, accel, mode);
+
                 match mode {
                     Mode::RampUp => {
                         ramped_up = true;
@@ -342,7 +344,7 @@ mod tests {
         }
     }
 
-    #[derive(Eq, PartialEq)]
+    #[derive(Debug, Eq, PartialEq)]
     enum Mode {
         RampUp,
         Plateau,
