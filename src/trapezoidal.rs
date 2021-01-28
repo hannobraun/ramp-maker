@@ -53,7 +53,7 @@ use num_traits::{clamp_max, clamp_min};
 /// Please note that by default, support for `f32`/`f64` is not available. Check
 /// out the section on Cargo features from the documentation in the root module
 /// to learn how to enable it.
-pub struct Trapezoidal<Num = fixed::FixedU64<typenum::U32>> {
+pub struct Trapezoidal<Num = DefaultNum> {
     delay_min: Num,
     delay_initial: Num,
     target_accel: Num,
@@ -149,6 +149,9 @@ where
         })
     }
 }
+
+/// The default numeric type used by [`Trapezoidal`]
+pub type DefaultNum = fixed::FixedU64<typenum::U32>;
 
 /// Defines an interface to the square root operation
 ///

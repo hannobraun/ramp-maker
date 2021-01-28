@@ -37,7 +37,7 @@ use fixed::FixedU32;
 /// be ideal for 8- or 16-bit microcontrollers, or target platforms where
 /// hardware support for floating point numbers is available. You can override
 /// it with other types from the `fixed` crate, or `f32`/`f64`, for example.
-pub struct Flat<Num = FixedU32<typenum::U16>> {
+pub struct Flat<Num = DefaultNum> {
     delay: Num,
 }
 
@@ -70,6 +70,9 @@ where
         iter::repeat(self.delay.clone()).take(num_steps)
     }
 }
+
+/// The default numeric type used by [`Flat`]
+pub type DefaultNum = FixedU32<typenum::U16>;
 
 #[cfg(test)]
 mod tests {
