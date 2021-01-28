@@ -28,3 +28,31 @@ mod flat;
 mod trapezoidal;
 
 pub use self::{flat::Flat, trapezoidal::Trapezoidal};
+
+/// Abstract interface for acceleration profiles
+///
+/// Implemented by all acceleration profiles in this library. Can be used to
+/// write code that doesn't care about the specific acceleration profile used.
+pub trait AccelerationProfile<Num> {
+    /// The iterator returned by [`AccelerationProfile::ramp`]
+    type Iter: Iterator<Item = Num>;
+
+    /// Generate the acceleration ramp
+    ///
+    /// `num_steps` defines the number of steps in the acceleration ramp. The
+    /// returned iterator yields one value per step, each value defining a delay
+    /// between two steps.
+    ///
+    /// Note that actually for n steps, only n-1 delay values are needed. The
+    /// additional delay value will lead to an unnecessary delay before the
+    /// first or after the last step. This was done to make accidental misuse of
+    /// this method less likely, as the most straight-forward use of this method
+    /// is to iterate over all values and make one step per value.
+    ///
+    /// If the additional delay value is relevant for your application, you can
+    /// just ignore it.
+    ///
+    /// All other details of the acceleration ramp, as well as the unit of the
+    /// yielded delay values, are implementation-defined.
+    fn ramp(&self, num_steps: usize) -> Self::Iter;
+}
