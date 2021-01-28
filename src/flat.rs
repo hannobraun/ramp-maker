@@ -43,7 +43,7 @@ pub struct Flat<Num = DefaultNum> {
 
 impl<Num> Flat<Num>
 where
-    Num: Clone + num_traits::One + ops::Div<Output = Num>,
+    Num: Copy + num_traits::One + ops::Div<Output = Num>,
 {
     /// Create a `Flat` instance by passing a target speed
     ///
@@ -67,7 +67,7 @@ where
     /// will be the same (as defined by the target speed passed to the
     /// constructor).
     pub fn ramp(&self, num_steps: usize) -> impl Iterator<Item = Num> {
-        iter::repeat(self.delay.clone()).take(num_steps)
+        iter::repeat(self.delay).take(num_steps)
     }
 }
 
