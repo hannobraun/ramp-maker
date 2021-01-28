@@ -70,8 +70,15 @@ where
     /// Create a new instance of `Trapezoidal`
     ///
     /// Accepts two arguments:
-    /// - `target_accel`, the target acceleration in steps per second^2.
-    /// - `max_speed`, the maximum speed in steps per second.
+    /// - `target_accel`, the target acceleration in steps per (unit of time)^2.
+    /// - `max_speed`, the maximum speed in steps per unit of time.
+    ///
+    /// Both parameters must not be zero. See the struct documentation for
+    /// information about units of time.
+    ///
+    /// # Panics
+    ///
+    /// Panics, if `target_accel` or `max_speed` are zero.
     pub fn new(target_accel: Num, max_speed: Num) -> Self {
         // Based on equation [7] in the reference paper.
         let min_delay = max_speed.inv();
