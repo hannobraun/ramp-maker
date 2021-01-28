@@ -11,6 +11,8 @@ use fixed_sqrt::{
 };
 use num_traits::{clamp_max, clamp_min};
 
+use crate::AccelerationProfile;
+
 /// Trapezoidal acceleration profile
 ///
 /// Generates an approximation of a trapezoidal ramp, following the algorithm
@@ -26,6 +28,19 @@ use num_traits::{clamp_max, clamp_min};
 /// - The initial speed v0 is assumed to be zero, making this implementation
 ///   suitable only for starting and stopping at a stand-still.
 /// - None of the optional enhancements are implemented.
+///
+/// Create an instance of this struct using [`Trapezoidal::new`], then use the
+/// API defined by [`AccelerationProfile`] (which this struct implements) to
+/// generate the acceleration ramp.
+///
+/// # Acceleration Ramp
+///
+/// This struct will generate a trapezoidal acceleration ramp with the following
+/// attributes:
+/// - The speed will always be equal to or less than the maximum speed passed to
+///   the constructor.
+/// - While ramping up or down, the acceleration will be an approximation
+///   of the target acceleration passed to the constructor.
 ///
 /// # Unit of Time
 ///
@@ -62,12 +77,9 @@ pub struct Trapezoidal<Num = DefaultNum> {
 impl<Num> Trapezoidal<Num>
 where
     Num: Copy
-        + PartialOrd
         + num_traits::One
         + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
-        + ops::Sub<Output = Num>
-        + ops::Mul<Output = Num>
         + ops::Div<Output = Num>
         + Sqrt,
 {
@@ -97,56 +109,92 @@ where
             target_accel,
         }
     }
+}
 
-    /// Generate the acceleration ramp
-    ///
-    /// The `num_steps` argument defines how many steps you want to take.
-    /// Returns an iterator that yields one delay value per step, and `None`
-    /// after that.
-    ///
-    /// The resulting acceleration ramp has the following attributes:
-    /// - The speed will always be equal to or lesser than the maximum speed
-    ///   passed to the constructor.
-    /// - While ramping up or down, the acceleration will be an approximation
-    ///   of the target acceleration passed to the constructor.
-    pub fn ramp(&self, num_steps: usize) -> impl Iterator<Item = Num> {
-        // Can't have the closure access `self`, or we run into lifetime issues.
-        let delay_min = self.delay_min;
-        let delay_initial = self.delay_initial;
-        let target_accel = self.target_accel;
+impl<Num> AccelerationProfile<Num> for Trapezoidal<Num>
+where
+    Num: Copy
+        + PartialOrd
+        + num_traits::One
+        + ops::Add<Output = Num>
+        + ops::Sub<Output = Num>
+        + ops::Mul<Output = Num>,
+{
+    type Iter = Iter<Num>;
 
-        let mut delay_prev = self.delay_initial;
+    fn ramp(&self, num_steps: usize) -> Self::Iter {
+        Iter {
+            delay_min: self.delay_min,
+            delay_initial: self.delay_initial,
+            target_accel: self.target_accel,
 
-        (1..=num_steps).map(move |step| {
-            // Compute the delay for the next step. See [20] in the referenced
-            // paper.
-            //
-            // We basically treat our trapezoidal acceleration profile like a
-            // triangular one here. This works because we're actually
-            // calculating a triangular profile, as far as this algorithm is
-            // concerned. We just turn it into a trapezoidal profile further
-            // below, by clamping the delay value before returning it, basically
-            // cutting off the top.
-            let delay_next = if step <= num_steps / 2 {
-                // Ramping up
-                delay_prev
-                    * (Num::one() - target_accel * delay_prev * delay_prev)
-            } else {
-                // Ramping down
-                delay_prev
-                    * (Num::one() + target_accel * delay_prev * delay_prev)
-            };
+            step: 1,
+            num_steps,
 
-            delay_prev = delay_next;
+            delay_prev: self.delay_initial,
+        }
+    }
+}
 
-            // Assure that `delay_min <= delay_next <= delay_initial`, for the
-            // actually returned delay. See the explanation following [20] in
-            // the referenced paper.
-            let delay_next = clamp_min(delay_next, delay_min);
-            let delay_next = clamp_max(delay_next, delay_initial);
+/// The iterator returned by `Trapezoidal`'s `AccelerationProfile::ramp` impl
+pub struct Iter<Num> {
+    delay_min: Num,
+    delay_initial: Num,
+    target_accel: Num,
 
-            delay_next
-        })
+    step: usize,
+    num_steps: usize,
+
+    delay_prev: Num,
+}
+
+impl<Num> Iterator for Iter<Num>
+where
+    Num: Copy
+        + PartialOrd
+        + num_traits::One
+        + ops::Add<Output = Num>
+        + ops::Sub<Output = Num>
+        + ops::Mul<Output = Num>,
+{
+    type Item = Num;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.step > self.num_steps {
+            return None;
+        }
+
+        // Compute the delay for the next step. See [20] in the referenced
+        // paper.
+        //
+        // We basically treat our trapezoidal acceleration profile like a
+        // triangular one here. This works because we're actually
+        // calculating a triangular profile, as far as this algorithm is
+        // concerned. We just turn it into a trapezoidal profile further
+        // below, by clamping the delay value before returning it, basically
+        // cutting off the top.
+        let delay_next = if self.step <= self.num_steps / 2 {
+            // Ramping up
+            self.delay_prev
+                * (Num::one()
+                    - self.target_accel * self.delay_prev * self.delay_prev)
+        } else {
+            // Ramping down
+            self.delay_prev
+                * (Num::one()
+                    + self.target_accel * self.delay_prev * self.delay_prev)
+        };
+
+        self.delay_prev = delay_next;
+        self.step += 1;
+
+        // Assure that `delay_min <= delay_next <= delay_initial`, for the
+        // actually returned delay. See the explanation following [20] in
+        // the referenced paper.
+        let delay_next = clamp_min(delay_next, self.delay_min);
+        let delay_next = clamp_max(delay_next, self.delay_initial);
+
+        Some(delay_next)
     }
 }
 
@@ -233,7 +281,7 @@ impl_fixed!(
 
 #[cfg(test)]
 mod tests {
-    use crate::Trapezoidal;
+    use crate::{AccelerationProfile as _, Trapezoidal};
 
     #[test]
     fn trapezoidal_should_produce_correct_number_of_steps() {
