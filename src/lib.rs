@@ -3,6 +3,9 @@
 //! RampMaker is a library that generates acceleration profiles for stepper
 //! motors. It can be used independently, or together with [Step/Dir].
 //!
+//! Trinamic have [an overview over acceleration profiles][overview] on their
+//! website.
+//!
 //! # Cargo Features
 //!
 //! This library works without the standard library (`no_std`) by default. This
@@ -19,6 +22,7 @@
 //!   via [libm].
 //!
 //! [Step/Dir]: https://crates.io/crates/step-dir
+//! [overview]: https://www.trinamic.com/technology/motion-control-technology/
 //! [libm]: https://crates.io/crates/libm
 
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
