@@ -1,9 +1,6 @@
 use core::ops;
 
-use fixed::{
-    types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8},
-    FixedU32,
-};
+use fixed::types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8};
 use fixed_sqrt::{
     traits::{IsEven, LtU128, LtU16, LtU32, LtU64, LtU8},
     FixedSqrt,
@@ -40,17 +37,19 @@ use num_traits::{clamp_max, clamp_min};
 ///
 /// The type parameter `Num` defines the type that is used to represent the
 /// target acceleration, maximum speed, and delays per step. It is set to a
-/// 32-bit fixed-point number type by default.
+/// 64-bit fixed-point number type by default.
 ///
-/// This default is appropriate for 32-bit microcontrollers, but it might not
-/// be ideal for 8- or 16-bit microcontrollers, or target platforms where
-/// hardware support for floating point numbers is available. You can override
-/// it with other types from the `fixed` crate, or `f32`/`f64`, for example.
+/// You can override the default with `f32`, `f64`, or any other type from the
+/// `fixed` crate. Please note that this code uses a very naive approach
+/// regarding its use of numeric types, which does not play well lower-accuracy
+/// fixed-point types. Please be very careful when using any other other type
+/// than the default. The code might not even generate a proper trapezoidal
+/// ramp, if accuracy is too low!
 ///
 /// Please note that by default, support for `f32`/`f64` is not available. Check
-/// out the documentation on Cargo features from the documentation in the root
-/// module to learn how to enable it.
-pub struct Trapezoidal<Num = FixedU32<typenum::U16>> {
+/// out the section on Cargo features from the documentation in the root module
+/// to learn how to enable it.
+pub struct Trapezoidal<Num = fixed::FixedU64<typenum::U32>> {
     delay_min: Num,
     delay_initial: Num,
     target_accel: Num,
