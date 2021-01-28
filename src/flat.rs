@@ -2,9 +2,11 @@
 //!
 //! See [`Flat`].
 
-use core::{iter, ops};
+use core::ops;
 
 use fixed::FixedU32;
+
+use crate::AccelerationProfile;
 
 /// Flat acceleration profile
 ///
@@ -43,7 +45,7 @@ pub struct Flat<Num = DefaultNum> {
 
 impl<Num> Flat<Num>
 where
-    Num: Copy + num_traits::One + ops::Div<Output = Num>,
+    Num: num_traits::One + ops::Div<Output = Num>,
 {
     /// Create a `Flat` instance by passing a target speed
     ///
@@ -57,6 +59,13 @@ where
         let delay = Num::one() / target_speed;
         Self { delay }
     }
+}
+
+impl<Num> AccelerationProfile<Num> for Flat<Num>
+where
+    Num: Copy,
+{
+    type Iter = Iter<Num>;
 
     /// Generate the acceleration ramp
     ///
@@ -66,8 +75,38 @@ where
     /// Since this is the flat acceleration profile, all delay values yielded
     /// will be the same (as defined by the target speed passed to the
     /// constructor).
-    pub fn ramp(&self, num_steps: usize) -> impl Iterator<Item = Num> {
-        iter::repeat(self.delay).take(num_steps)
+    fn ramp(&self, num_steps: usize) -> Self::Iter {
+        Iter {
+            delay: self.delay,
+
+            step: 0,
+            num_steps,
+        }
+    }
+}
+
+/// The iterator returned by `Flat`'s `AccelerationProfile::ramp` implementation
+pub struct Iter<Num> {
+    delay: Num,
+
+    step: usize,
+    num_steps: usize,
+}
+
+impl<Num> Iterator for Iter<Num>
+where
+    Num: Copy,
+{
+    type Item = Num;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.step >= self.num_steps {
+            return None;
+        }
+
+        self.step += 1;
+
+        Some(self.delay)
     }
 }
 
@@ -76,7 +115,7 @@ pub type DefaultNum = FixedU32<typenum::U16>;
 
 #[cfg(test)]
 mod tests {
-    use crate::Flat;
+    use crate::{AccelerationProfile as _, Flat};
 
     #[test]
     fn flat_should_produce_correct_number_of_steps() {
