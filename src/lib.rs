@@ -24,8 +24,8 @@
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
 #![deny(missing_docs, broken_intra_doc_links)]
 
-mod flat;
-mod trapezoidal;
+pub mod flat;
+pub mod trapezoidal;
 
 pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 

@@ -1,3 +1,7 @@
+//! Trapezoidal acceleration profile
+//!
+//! See [`Trapezoidal`].
+
 use core::ops;
 
 use fixed::types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8};

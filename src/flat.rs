@@ -1,3 +1,7 @@
+//! Flat acceleration profile
+//!
+//! See [`Flat`].
+
 use core::{iter, ops};
 
 use fixed::FixedU32;
