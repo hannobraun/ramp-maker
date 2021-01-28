@@ -17,15 +17,15 @@ use crate::AccelerationProfile;
 ///
 /// Generates an approximation of a trapezoidal ramp, following the algorithm
 /// laid out here:
-/// http://hwml.com/LeibRamp.htm
+/// [http://hwml.com/LeibRamp.htm](http://hwml.com/LeibRamp.htm)
 ///
 /// A PDF version of that page is available:
-/// http://hwml.com/LeibRamp.pdf
+/// [http://hwml.com/LeibRamp.pdf](http://hwml.com/LeibRamp.pdf)
 ///
 /// This implementation makes the following simplifications:
 /// - The unit of time used is left to the user (see "Unit of Time" below), so
-///   the frequency variable "F" is ignored.
-/// - The initial speed v0 is assumed to be zero, making this implementation
+///   the frequency variable `F` is ignored.
+/// - The initial speed `v0` is assumed to be zero, making this implementation
 ///   suitable only for starting and stopping at a stand-still.
 /// - None of the optional enhancements are implemented.
 ///
@@ -136,7 +136,9 @@ where
     }
 }
 
-/// The iterator returned by `Trapezoidal`'s `AccelerationProfile::ramp` impl
+/// The iterator returned by [`Trapezoidal`]
+///
+/// See [`Trapezoidal`]'s [`AccelerationProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay_min: Num,
     delay_initial: Num,
@@ -205,13 +207,17 @@ pub type DefaultNum = fixed::FixedU64<typenum::U32>;
 ///
 /// The code in this method is generic over the number it uses, however, there
 /// currently seems to be a hole in the ecosystem regarding square roots.
-/// There's `fixed-sqrt`, but it's for numbers from `fixed` only. Then there's
-/// `num_traits::real::Real`, but this trait isn't available without depending
-/// on `libm`, which I'm not sure about, and it's not implemented for the
-/// `fixed` types anyway.
+/// There's [fixed-sqrt], but it's for numbers from `fixed` only. Then there's
+/// `Real` from [num-traits], but this trait is not implemented for the [fixed]
+/// types.
 ///
-/// This custom trait fills the gap, by defining the `sqrt` method and providing
-/// implementations for `f32`, `f64`, and all types from the `fixed` crate.
+/// This custom trait fills the gap, by defining a square root method and
+/// providing implementations for `f32`, `f64`, and all types from the `fixed`
+/// crate.
+///
+/// [fixed-sqrt]: https://crates.io/crates/fixed-sqrt
+/// [num-traits]: https://crates.io/crates/num-traits
+/// [fixed]: https://crates.io/crates/fixed
 pub trait Sqrt {
     /// Return the square root of `self`
     ///

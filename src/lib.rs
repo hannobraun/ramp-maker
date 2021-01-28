@@ -10,7 +10,7 @@
 //!
 //! This library works without the standard library (`no_std`) by default. This
 //! limits support for `f32`/`f64` for acceleration profiles that need to
-//! compute a square root, as this operation is not available in the standard
+//! compute a square root, as this operation is not available in the core
 //! library (if you're using the default fixed-point types, you're not affected
 //! by this).
 //!
@@ -36,7 +36,8 @@ pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 /// Abstract interface for acceleration profiles
 ///
 /// Implemented by all acceleration profiles in this library. Can be used to
-/// write code that doesn't care about the specific acceleration profile used.
+/// write abstract code that doesn't care about the specific acceleration
+/// profile used.
 pub trait AccelerationProfile<Num> {
     /// The iterator returned by [`AccelerationProfile::ramp`]
     type Iter: Iterator<Item = Num>;
@@ -47,14 +48,13 @@ pub trait AccelerationProfile<Num> {
     /// returned iterator yields one value per step, each value defining a delay
     /// between two steps.
     ///
-    /// Note that actually for n steps, only n-1 delay values are needed. The
+    /// Note that for n steps, only n-1 delay values are actually needed. The
     /// additional delay value will lead to an unnecessary delay before the
     /// first or after the last step. This was done to make accidental misuse of
     /// this method less likely, as the most straight-forward use of this method
-    /// is to iterate over all values and make one step per value.
-    ///
-    /// If the additional delay value is relevant for your application, you can
-    /// just ignore it.
+    /// is to iterate over all values and make one step per value. If the
+    /// additional delay value is relevant for your application, you can just
+    /// ignore it.
     ///
     /// All other details of the acceleration ramp, as well as the unit of the
     /// yielded delay values, are implementation-defined.

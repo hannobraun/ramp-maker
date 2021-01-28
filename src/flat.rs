@@ -19,6 +19,10 @@ use crate::AccelerationProfile;
 /// this, if the speed and the load on the motor are low enough. Otherwise, this
 /// will definitely produce missed steps.
 ///
+/// Create an instance of this struct using [`Flat::new`], then use the API
+/// defined by [`AccelerationProfile`] (which this struct implements) to
+/// generate the acceleration ramp.
+///
 /// # Unit of Time
 ///
 /// This code is agnostic on which unit of time is used. If you provide the
@@ -85,7 +89,9 @@ where
     }
 }
 
-/// The iterator returned by `Flat`'s `AccelerationProfile::ramp` implementation
+/// The iterator returned by [`Flat`]
+///
+/// See [`Flat`]'s [`AccelerationProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay: Num,
 
