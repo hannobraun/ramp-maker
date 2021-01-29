@@ -1,5 +1,7 @@
 # RampMaker - Stepper Acceleration Ramp Generator
 
+![CI Build](https://github.com/flott-motion/ramp-maker/workflows/CI%20Build/badge.svg)
+
 **Please consider supporting this project financially. More information below.**
 
 ## About
