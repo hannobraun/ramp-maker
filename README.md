@@ -27,7 +27,7 @@ RampMaker is a library written in Rust and designed for use in Rust projects. It
 Add Step/Dir to your `Cargo.toml` like this:
 
 ``` toml
-[dependencies.step-dir]
+[dependencies.ramp-maker]
 version = "0.1" # always use the latest version here
 ```
 
