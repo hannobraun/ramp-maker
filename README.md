@@ -28,7 +28,7 @@ Add Step/Dir to your `Cargo.toml` like this:
 
 ``` toml
 [dependencies.step-dir]
-git = "https://github.com/flott-motion/ramp-maker.git"
+version = "0.1" # always use the latest version here
 ```
 
 
