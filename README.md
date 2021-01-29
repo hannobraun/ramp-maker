@@ -1,6 +1,6 @@
 # RampMaker - Stepper Acceleration Ramp Generator
 
-![CI Build](https://github.com/flott-motion/ramp-maker/workflows/CI%20Build/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/ramp-maker.svg)](https://crates.io/crates/ramp-maker) [![Documentation](https://docs.rs/ramp-maker/badge.svg)](https://docs.rs/ramp-maker) ![CI Build](https://github.com/flott-motion/ramp-maker/workflows/CI%20Build/badge.svg)
 
 **Please consider supporting this project financially. More information below.**
 
@@ -27,7 +27,7 @@ RampMaker is a library written in Rust and designed for use in Rust projects. It
 Add Step/Dir to your `Cargo.toml` like this:
 
 ``` toml
-[dependencies.step-dir]
+[dependencies.ramp-maker]
 version = "0.1" # always use the latest version here
 ```
 
