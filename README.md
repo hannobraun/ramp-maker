@@ -1,6 +1,6 @@
 # RampMaker - Stepper Acceleration Ramp Generator
 
-![CI Build](https://github.com/flott-motion/ramp-maker/workflows/CI%20Build/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/ramp-maker.svg)](https://crates.io/crates/ramp-maker) [![Documentation](https://docs.rs/ramp-maker/badge.svg)](https://docs.rs/ramp-maker) ![CI Build](https://github.com/flott-motion/ramp-maker/workflows/CI%20Build/badge.svg)
 
 **Please consider supporting this project financially. More information below.**
 
