@@ -30,3 +30,8 @@ optional = true
 [dependencies.num-traits]
 version          = "0.2.14"
 default-features = false
+
+
+[[example]]
+name              = "basic"
+required-features = ["std"]

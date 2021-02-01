@@ -1,0 +1,39 @@
+// Required to call the `ramp` method.
+use ramp_maker::AccelerationProfile as _;
+
+fn main() {
+    // Let's use floating point numbers here to keep the example simple.
+    // RampMaker also supports fixed-point numbers though.
+    let target_accel = 1000.0; // meters per second^2
+    let max_speed = 1500.0; // meters per second
+    let profile = ramp_maker::Trapezoidal::new(target_accel, max_speed);
+
+    let num_steps = 2000;
+    for delay in profile.ramp(num_steps) {
+        // How you handle a delay depends on the platform you're running on
+        // (RampMaker works pretty much everywhere). Here, we use a fake `Timer`
+        // API, to demonstrate how the delays produced by RampMaker must be
+        // used.
+        let timer = Timer::start(delay);
+
+        // RampMaker doesn't actually care how you actually interface with the
+        // stepper motor, so we use this fake `step` method to demonstrate the
+        // principle. If you haven't settled on a library, why not check out
+        // Step/Dir from the Flott toolkit?
+        step();
+
+        timer.wait();
+    }
+}
+
+struct Timer;
+
+impl Timer {
+    fn start(_delay_s: f32) -> Self {
+        Self
+    }
+
+    fn wait(&self) {}
+}
+
+fn step() {}
