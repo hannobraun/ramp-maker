@@ -8,6 +8,8 @@
 
 RampMaker provides implementations of stepper motor acceleration profiles, as well as a trait to abstract over them. Right now only a trapezoidal profile (plus a flat profile for testing) is supported.
 
+RampMaker is part of the [Flott] motion control toolkit. Also check out [Step/Dir], the universal stepper motor interface.
+
 If you're looking for an alternative to this library, you might like [stepgen].
 
 
@@ -34,7 +36,7 @@ version = "0.1" # always use the latest version here
 
 ## Funding
 
-If you're getting value out of RampMaker, or other libraries from the [Flott] toolkit, please consider supporting us financially. Your sponsorship helps to keep the project healthy and moving forward.
+If you're getting value out of RampMaker or other libraries from the [Flott] toolkit, please consider supporting us financially. Your sponsorship helps to keep the project healthy and moving forward.
 
 [Hanno Braun][@hannobraun], maintainer and original creator of this library, is [accepting sponsorship](https://github.com/sponsors/hannobraun).
 
@@ -46,8 +48,9 @@ This project is open source software, licensed under the terms of the [Zero Clau
 See [LICENSE.md] for full details.
 
 
+[Flott]: https://flott-motion.org/
+[Step/Dir]: https://crates.io/crates/step-dir
 [stepgen]: https://crates.io/crates/stepgen
 [@hannobraun]: https://github.com/hannobraun
-[Flott]: https://flott-motion.org/
 [Zero Clause BSD License]: https://opensource.org/licenses/0BSD
 [LICENSE.md]: https://github.com/flott-motion/step-dir/blob/main/LICENSE.md
