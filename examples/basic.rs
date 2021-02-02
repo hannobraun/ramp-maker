@@ -16,12 +16,13 @@ fn main() {
         // used.
         let timer = Timer::start(delay);
 
-        // RampMaker doesn't actually care how you actually interface with the
-        // stepper motor, so we use this fake `step` method to demonstrate the
-        // principle. If you haven't settled on a library, why not check out
-        // Step/Dir from the Flott toolkit?
+        // RampMaker doesn't care how you actually interface with the stepper
+        // motor, so we use this fake `step` method to demonstrate the
+        // principle. If you haven't settled on a solution, why not check out
+        // Step/Dir, another library from the Flott toolkit?
         step();
 
+        // Wait until the delay is over before making the next step.
         timer.wait();
     }
 }
