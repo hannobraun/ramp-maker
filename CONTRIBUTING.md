@@ -1,4 +1,4 @@
-# Contributing
+# Contributing to RampMaker
 
 ## Introduction
 
