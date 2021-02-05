@@ -1,4 +1,4 @@
-//! Trapezoidal acceleration profile
+//! Trapezoidal motion profile
 //!
 //! See [`Trapezoidal`].
 
@@ -11,9 +11,9 @@ use fixed_sqrt::{
 };
 use num_traits::{clamp_max, clamp_min};
 
-use crate::AccelerationProfile;
+use crate::MotionProfile;
 
-/// Trapezoidal acceleration profile
+/// Trapezoidal motion profile
 ///
 /// Generates an approximation of a trapezoidal ramp, following the algorithm
 /// laid out here:
@@ -30,8 +30,8 @@ use crate::AccelerationProfile;
 /// - None of the optional enhancements are implemented.
 ///
 /// Create an instance of this struct using [`Trapezoidal::new`], then use the
-/// API defined by [`AccelerationProfile`] (which this struct implements) to
-/// generate the acceleration ramp.
+/// API defined by [`MotionProfile`] (which this struct implements) to generate
+/// the acceleration ramp.
 ///
 /// # Acceleration Ramp
 ///
@@ -111,7 +111,7 @@ where
     }
 }
 
-impl<Num> AccelerationProfile<Num> for Trapezoidal<Num>
+impl<Num> MotionProfile<Num> for Trapezoidal<Num>
 where
     Num: Copy
         + PartialOrd
@@ -138,7 +138,7 @@ where
 
 /// The iterator returned by [`Trapezoidal`]
 ///
-/// See [`Trapezoidal`]'s [`AccelerationProfile::ramp`] implementation
+/// See [`Trapezoidal`]'s [`MotionProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay_min: Num,
     delay_initial: Num,
@@ -169,12 +169,11 @@ where
         // Compute the delay for the next step. See [20] in the referenced
         // paper.
         //
-        // We basically treat our trapezoidal acceleration profile like a
-        // triangular one here. This works because we're actually
-        // calculating a triangular profile, as far as this algorithm is
-        // concerned. We just turn it into a trapezoidal profile further
-        // below, by clamping the delay value before returning it, basically
-        // cutting off the top.
+        // We basically treat our trapezoidal motion profile like a triangular
+        // one here. This works because we're actually calculating a triangular
+        // profile, as far as this algorithm is concerned. We just turn it into
+        // a trapezoidal profile further below, by clamping the delay value
+        // before returning it, basically cutting off the top.
         let delay_next = if self.step <= self.num_steps / 2 {
             // Ramping up
             self.delay_prev
@@ -287,7 +286,7 @@ impl_fixed!(
 
 #[cfg(test)]
 mod tests {
-    use crate::{AccelerationProfile as _, Trapezoidal};
+    use crate::{MotionProfile as _, Trapezoidal};
 
     #[test]
     fn trapezoidal_should_produce_correct_number_of_steps() {
