@@ -1,4 +1,4 @@
-//! Flat acceleration profile
+//! Flat motion profile
 //!
 //! See [`Flat`].
 
@@ -8,11 +8,11 @@ use fixed::FixedU32;
 
 use crate::MotionProfile;
 
-/// Flat acceleration profile
+/// Flat motion profile
 ///
-/// This is the simplest possible acceleration profile, as it produces just a
-/// constant speed. Please note that this is of limited use, and should probably
-/// be restricted to testing.
+/// This is the simplest possible motion profile, as it produces just a constant
+/// speed. Please note that this is of limited use, and should probably be
+/// restricted to testing.
 ///
 /// Theoretically, this profile produces infinite acceleration/deceleration at
 /// the beginning and end of the movement. In practice, you might get away with
@@ -76,9 +76,8 @@ where
     /// The `num_steps` argument defines the number of steps to take. Returns an
     /// iterator that yields one delay value per step, and `None` after that.
     ///
-    /// Since this is the flat acceleration profile, all delay values yielded
-    /// will be the same (as defined by the target speed passed to the
-    /// constructor).
+    /// Since this is the flat motion profile, all delay values yielded will be
+    /// the same (as defined by the target speed passed to the constructor).
     fn ramp(&self, num_steps: usize) -> Self::Iter {
         Iter {
             delay: self.delay,

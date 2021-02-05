@@ -1,4 +1,4 @@
-//! Trapezoidal acceleration profile
+//! Trapezoidal motion profile
 //!
 //! See [`Trapezoidal`].
 
@@ -13,7 +13,7 @@ use num_traits::{clamp_max, clamp_min};
 
 use crate::MotionProfile;
 
-/// Trapezoidal acceleration profile
+/// Trapezoidal motion profile
 ///
 /// Generates an approximation of a trapezoidal ramp, following the algorithm
 /// laid out here:
@@ -169,12 +169,11 @@ where
         // Compute the delay for the next step. See [20] in the referenced
         // paper.
         //
-        // We basically treat our trapezoidal acceleration profile like a
-        // triangular one here. This works because we're actually
-        // calculating a triangular profile, as far as this algorithm is
-        // concerned. We just turn it into a trapezoidal profile further
-        // below, by clamping the delay value before returning it, basically
-        // cutting off the top.
+        // We basically treat our trapezoidal motion profile like a triangular
+        // one here. This works because we're actually calculating a triangular
+        // profile, as far as this algorithm is concerned. We just turn it into
+        // a trapezoidal profile further below, by clamping the delay value
+        // before returning it, basically cutting off the top.
         let delay_next = if self.step <= self.num_steps / 2 {
             // Ramping up
             self.delay_prev
