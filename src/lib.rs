@@ -1,18 +1,16 @@
 //! RampMaker - Stepper Acceleration Ramp Generator
 //!
-//! RampMaker is a library that generates acceleration profiles for stepper
-//! motors. It can be used independently, or together with [Step/Dir].
+//! RampMaker is a library that generates motion profiles for stepper motors. It
+//! can be used independently, or together with [Step/Dir].
 //!
-//! Trinamic have [an overview over acceleration profiles][overview] on their
-//! website.
+//! Trinamic have [an overview over motion profiles][overview] on their website.
 //!
 //! # Cargo Features
 //!
 //! This library works without the standard library (`no_std`) by default. This
-//! limits support for `f32`/`f64` for acceleration profiles that need to
-//! compute a square root, as this operation is not available in the core
-//! library (if you're using the default fixed-point types, you're not affected
-//! by this).
+//! limits support for `f32`/`f64` for motion profiles that need to compute a
+//! square root, as this operation is not available in the core library (if
+//! you're using the default fixed-point types, you're not affected by this).
 //!
 //! If you need full support for `f32`/`f64`, you have the following options:
 //! - Enable support for the standard library via the `std` feature. This
@@ -33,11 +31,11 @@ pub mod trapezoidal;
 
 pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 
-/// Abstract interface for acceleration profiles
+/// Abstract interface for motion profiles
 ///
-/// Implemented by all acceleration profiles in this library. Can be used to
-/// write abstract code that doesn't care about the specific acceleration
-/// profile used.
+/// Implemented by all motion profiles in this library. Can be used to
+/// write abstract code that doesn't care about the specific motion profile
+/// used.
 pub trait MotionProfile<Num> {
     /// The iterator returned by [`MotionProfile::ramp`]
     type Iter: Iterator<Item = Num>;
