@@ -38,8 +38,8 @@ pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 /// Implemented by all acceleration profiles in this library. Can be used to
 /// write abstract code that doesn't care about the specific acceleration
 /// profile used.
-pub trait AccelerationProfile<Num> {
-    /// The iterator returned by [`AccelerationProfile::ramp`]
+pub trait MotionProfile<Num> {
+    /// The iterator returned by [`MotionProfile::ramp`]
     type Iter: Iterator<Item = Num>;
 
     /// Generate the acceleration ramp

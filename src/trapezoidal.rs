@@ -11,7 +11,7 @@ use fixed_sqrt::{
 };
 use num_traits::{clamp_max, clamp_min};
 
-use crate::AccelerationProfile;
+use crate::MotionProfile;
 
 /// Trapezoidal acceleration profile
 ///
@@ -30,8 +30,8 @@ use crate::AccelerationProfile;
 /// - None of the optional enhancements are implemented.
 ///
 /// Create an instance of this struct using [`Trapezoidal::new`], then use the
-/// API defined by [`AccelerationProfile`] (which this struct implements) to
-/// generate the acceleration ramp.
+/// API defined by [`MotionProfile`] (which this struct implements) to generate
+/// the acceleration ramp.
 ///
 /// # Acceleration Ramp
 ///
@@ -111,7 +111,7 @@ where
     }
 }
 
-impl<Num> AccelerationProfile<Num> for Trapezoidal<Num>
+impl<Num> MotionProfile<Num> for Trapezoidal<Num>
 where
     Num: Copy
         + PartialOrd
@@ -138,7 +138,7 @@ where
 
 /// The iterator returned by [`Trapezoidal`]
 ///
-/// See [`Trapezoidal`]'s [`AccelerationProfile::ramp`] implementation
+/// See [`Trapezoidal`]'s [`MotionProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay_min: Num,
     delay_initial: Num,
@@ -287,7 +287,7 @@ impl_fixed!(
 
 #[cfg(test)]
 mod tests {
-    use crate::{AccelerationProfile as _, Trapezoidal};
+    use crate::{MotionProfile as _, Trapezoidal};
 
     #[test]
     fn trapezoidal_should_produce_correct_number_of_steps() {

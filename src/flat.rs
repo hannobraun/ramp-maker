@@ -6,7 +6,7 @@ use core::ops;
 
 use fixed::FixedU32;
 
-use crate::AccelerationProfile;
+use crate::MotionProfile;
 
 /// Flat acceleration profile
 ///
@@ -20,8 +20,8 @@ use crate::AccelerationProfile;
 /// will definitely produce missed steps.
 ///
 /// Create an instance of this struct using [`Flat::new`], then use the API
-/// defined by [`AccelerationProfile`] (which this struct implements) to
-/// generate the acceleration ramp.
+/// defined by [`MotionProfile`] (which this struct implements) to generate the
+/// acceleration ramp.
 ///
 /// # Unit of Time
 ///
@@ -65,7 +65,7 @@ where
     }
 }
 
-impl<Num> AccelerationProfile<Num> for Flat<Num>
+impl<Num> MotionProfile<Num> for Flat<Num>
 where
     Num: Copy,
 {
@@ -91,7 +91,7 @@ where
 
 /// The iterator returned by [`Flat`]
 ///
-/// See [`Flat`]'s [`AccelerationProfile::ramp`] implementation
+/// See [`Flat`]'s [`MotionProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay: Num,
 
@@ -121,7 +121,7 @@ pub type DefaultNum = FixedU32<typenum::U16>;
 
 #[cfg(test)]
 mod tests {
-    use crate::{AccelerationProfile as _, Flat};
+    use crate::{Flat, MotionProfile as _};
 
     #[test]
     fn flat_should_produce_correct_number_of_steps() {

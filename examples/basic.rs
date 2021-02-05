@@ -1,5 +1,5 @@
 // Required to call the `ramp` method.
-use ramp_maker::AccelerationProfile as _;
+use ramp_maker::MotionProfile as _;
 
 fn main() {
     // Let's use floating point numbers here to keep the example simple.
