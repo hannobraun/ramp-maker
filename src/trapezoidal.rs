@@ -440,10 +440,10 @@ mod tests {
         let mut accel = None;
 
         if let &mut Some(delay_prev) = delay_prev {
-            let speed_prev = 1.0 / delay_prev;
-            let speed_curr = 1.0 / delay_curr;
+            let velocity_prev = 1.0 / delay_prev;
+            let velocity_curr = 1.0 / delay_curr;
 
-            let speed_diff: f32 = speed_curr - speed_prev;
+            let velocity_diff: f32 = velocity_curr - velocity_prev;
 
             // - Assumes the velocity defined by a given delay to be reached at
             //   the mid-point between the two steps that the delay separates.
@@ -455,7 +455,7 @@ mod tests {
             //   the points in time at which the two velocities are reached.
             let time_diff = delay_prev / 2.0 + delay_curr / 2.0;
 
-            accel = Some(speed_diff / time_diff);
+            accel = Some(velocity_diff / time_diff);
         }
 
         *delay_prev = Some(delay_curr);
