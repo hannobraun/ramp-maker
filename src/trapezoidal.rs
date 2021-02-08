@@ -25,8 +25,8 @@ use crate::MotionProfile;
 /// This implementation makes the following simplifications:
 /// - The unit of time used is left to the user (see "Unit of Time" below), so
 ///   the frequency variable `F` is ignored.
-/// - The initial speed `v0` is assumed to be zero, making this implementation
-///   suitable only for starting and stopping at a stand-still.
+/// - The initial velocity `v0` is assumed to be zero, making this
+///   implementation suitable only for starting and stopping at a stand-still.
 /// - None of the optional enhancements are implemented.
 ///
 /// Create an instance of this struct using [`Trapezoidal::new`], then use the
@@ -37,16 +37,16 @@ use crate::MotionProfile;
 ///
 /// This struct will generate a trapezoidal acceleration ramp with the following
 /// attributes:
-/// - The speed will always be equal to or less than the maximum speed passed to
-///   the constructor.
+/// - The velocity will always be equal to or less than the maximum velocity
+///   passed to the constructor.
 /// - While ramping up or down, the acceleration will be an approximation
 ///   of the target acceleration passed to the constructor.
 ///
 /// # Unit of Time
 ///
 /// This code is agnostic on which unit of time is used. If you provide the
-/// target acceleration and maximum speed in steps per second, the unit of the
-/// delay returned will be seconds.
+/// target acceleration and maximum velocity in steps per second, the unit of
+/// the delay returned will be seconds.
 ///
 /// This allows you to pass the parameters in steps per number of timer counts
 /// for the timer you're using, completely eliminating any conversion overhead
@@ -55,7 +55,7 @@ use crate::MotionProfile;
 /// # Type Parameter
 ///
 /// The type parameter `Num` defines the type that is used to represent the
-/// target acceleration, maximum speed, and delays per step. It is set to a
+/// target acceleration, maximum velocity, and delays per step. It is set to a
 /// 64-bit fixed-point number type by default.
 ///
 /// You can override the default with `f32`, `f64`, or any other type from the
@@ -87,7 +87,7 @@ where
     ///
     /// Accepts two arguments:
     /// - `target_accel`, the target acceleration in steps per (unit of time)^2.
-    /// - `max_speed`, the maximum speed in steps per unit of time.
+    /// - `max_speed`, the maximum velocity in steps per unit of time.
     ///
     /// Both parameters must not be zero. See the struct documentation for
     /// information about units of time.
@@ -445,14 +445,14 @@ mod tests {
 
             let speed_diff: f32 = speed_curr - speed_prev;
 
-            // - Assumes the speed defined by a given delay to be reached at the
-            //   mid-point between the two steps that the delay separates.
-            // - Because of this, the interval between the time of the speed
+            // - Assumes the velocity defined by a given delay to be reached at
+            //   the mid-point between the two steps that the delay separates.
+            // - Because of this, the interval between the time of the velocity
             //   being reached and the time of a neighboring step being
             //   initiated, is half the delay (the delay measures the interval
             //   between two steps).
             // - Therefore, the formula below computes the difference between
-            //   the points in time at which the two speeds are reached.
+            //   the points in time at which the two velocities are reached.
             let time_diff = delay_prev / 2.0 + delay_curr / 2.0;
 
             accel = Some(speed_diff / time_diff);

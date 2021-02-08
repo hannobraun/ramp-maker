@@ -11,13 +11,13 @@ use crate::MotionProfile;
 /// Flat motion profile
 ///
 /// This is the simplest possible motion profile, as it produces just a constant
-/// speed. Please note that this is of limited use, and should probably be
+/// velocity. Please note that this is of limited use, and should probably be
 /// restricted to testing.
 ///
 /// Theoretically, this profile produces infinite acceleration/deceleration at
 /// the beginning and end of the movement. In practice, you might get away with
-/// this, if the speed and the load on the motor are low enough. Otherwise, this
-/// will definitely produce missed steps.
+/// this, if the velocity and the load on the motor are low enough. Otherwise,
+/// this will definitely produce missed steps.
 ///
 /// Create an instance of this struct using [`Flat::new`], then use the API
 /// defined by [`MotionProfile`] (which this struct implements) to generate the
@@ -26,17 +26,17 @@ use crate::MotionProfile;
 /// # Unit of Time
 ///
 /// This code is agnostic on which unit of time is used. If you provide the
-/// target speed in steps per second, the unit of the delay returned will be
+/// target velocity in steps per second, the unit of the delay returned will be
 /// seconds.
 ///
-/// This allows you to pass the target speed in steps per number of timer counts
-/// for the timer you're using, completely eliminating any conversion overhead
-/// for the delay.
+/// This allows you to pass the target velocity in steps per number of timer
+/// counts for the timer you're using, completely eliminating any conversion
+/// overhead for the delay.
 ///
 /// # Type Parameter
 ///
 /// The type parameter `Num` defines the type that is used to represent the
-/// target speed and the delay per step. It is set to a 32-bit fixed-point
+/// target velocity and the delay per step. It is set to a 32-bit fixed-point
 /// number type by default.
 ///
 /// This default is appropriate for 32-bit microcontrollers, but it might not
@@ -51,10 +51,10 @@ impl<Num> Flat<Num>
 where
     Num: num_traits::One + ops::Div<Output = Num>,
 {
-    /// Create a `Flat` instance by passing a target speed
+    /// Create a `Flat` instance by passing a target velocity
     ///
-    /// The target speed is specified in steps per unit of time (see top-level
-    /// documentation of this struct) and must not be zero.
+    /// The target velocity is specified in steps per unit of time (see
+    /// top-level documentation of this struct) and must not be zero.
     ///
     /// # Panics
     ///
@@ -77,7 +77,7 @@ where
     /// iterator that yields one delay value per step, and `None` after that.
     ///
     /// Since this is the flat motion profile, all delay values yielded will be
-    /// the same (as defined by the target speed passed to the constructor).
+    /// the same (as defined by the target velocity passed to the constructor).
     fn ramp(&self, num_steps: usize) -> Self::Iter {
         Iter {
             delay: self.delay,
