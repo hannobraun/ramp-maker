@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn flat_should_produce_constant_speed() {
+    fn flat_should_produce_constant_velocity() {
         let flat = Flat::new(2.0); // steps per second
 
         for delay in flat.ramp(200) {
