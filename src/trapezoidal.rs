@@ -297,7 +297,7 @@ mod tests {
     }
 
     #[test]
-    fn trapezoidal_should_respect_maximum_speed() {
+    fn trapezoidal_should_respect_maximum_velocity() {
         let max_velocity = 1000.0; // steps per second
         let trapezoidal = Trapezoidal::new(6000.0, max_velocity);
 
