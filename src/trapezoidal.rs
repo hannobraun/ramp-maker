@@ -298,8 +298,8 @@ mod tests {
 
     #[test]
     fn trapezoidal_should_respect_maximum_speed() {
-        let max_speed = 1000.0; // steps per second
-        let trapezoidal = Trapezoidal::new(6000.0, max_speed);
+        let max_velocity = 1000.0; // steps per second
+        let trapezoidal = Trapezoidal::new(6000.0, max_velocity);
 
         let min_delay = 0.001; // seconds
         for delay in trapezoidal.ramp(200) {
