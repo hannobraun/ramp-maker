@@ -5,8 +5,8 @@ fn main() {
     // Let's use floating point numbers here to keep the example simple.
     // RampMaker also supports fixed-point numbers though.
     let target_accel = 1000.0; // meters per second^2
-    let max_speed = 1500.0; // meters per second
-    let profile = ramp_maker::Trapezoidal::new(target_accel, max_speed);
+    let max_velocity = 1500.0; // meters per second
+    let profile = ramp_maker::Trapezoidal::new(target_accel, max_velocity);
 
     let num_steps = 2000;
     for delay in profile.ramp(num_steps) {
