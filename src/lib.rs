@@ -59,5 +59,5 @@ pub trait MotionProfile {
     ///
     /// All other details of the acceleration ramp, as well as the unit of the
     /// yielded delay values, are implementation-defined.
-    fn ramp(&self, num_steps: usize) -> Self::Iter;
+    fn ramp(&self, num_steps: u32) -> Self::Iter;
 }
