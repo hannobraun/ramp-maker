@@ -111,7 +111,7 @@ where
     }
 }
 
-impl<Num> MotionProfile<Num> for Trapezoidal<Num>
+impl<Num> MotionProfile for Trapezoidal<Num>
 where
     Num: Copy
         + PartialOrd
@@ -120,6 +120,7 @@ where
         + ops::Sub<Output = Num>
         + ops::Mul<Output = Num>,
 {
+    type Delay = Num;
     type Iter = Iter<Num>;
 
     fn ramp(&self, num_steps: usize) -> Self::Iter {

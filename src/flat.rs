@@ -65,10 +65,11 @@ where
     }
 }
 
-impl<Num> MotionProfile<Num> for Flat<Num>
+impl<Num> MotionProfile for Flat<Num>
 where
     Num: Copy,
 {
+    type Delay = Num;
     type Iter = Iter<Num>;
 
     /// Generate the acceleration ramp

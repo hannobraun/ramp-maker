@@ -36,9 +36,12 @@ pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 /// Implemented by all motion profiles in this library. Can be used to
 /// write abstract code that doesn't care about the specific motion profile
 /// used.
-pub trait MotionProfile<Num> {
+pub trait MotionProfile {
+    /// The type used for representing delay values
+    type Delay;
+
     /// The iterator returned by [`MotionProfile::ramp`]
-    type Iter: Iterator<Item = Num>;
+    type Iter: Iterator<Item = Self::Delay>;
 
     /// Generate the acceleration ramp
     ///
