@@ -87,17 +87,17 @@ where
     ///
     /// Accepts two arguments:
     /// - `target_accel`, the target acceleration in steps per (unit of time)^2.
-    /// - `max_speed`, the maximum velocity in steps per unit of time.
+    /// - `max_velocity`, the maximum velocity in steps per unit of time.
     ///
     /// Both parameters must not be zero. See the struct documentation for
     /// information about units of time.
     ///
     /// # Panics
     ///
-    /// Panics, if `target_accel` or `max_speed` are zero.
-    pub fn new(target_accel: Num, max_speed: Num) -> Self {
+    /// Panics, if `target_accel` or `max_velocity` are zero.
+    pub fn new(target_accel: Num, max_velocity: Num) -> Self {
         // Based on equation [7] in the reference paper.
-        let min_delay = max_speed.inv();
+        let min_delay = max_velocity.inv();
 
         // Based on equation [17] in the referenced paper.
         let two = Num::one() + Num::one();
