@@ -37,7 +37,7 @@ pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 /// Implemented by all motion profiles in this library. Can be used to
 /// write abstract code that doesn't care about the specific motion profile
 /// used.
-pub trait MotionProfile {
+pub trait MotionProfile: Sized {
     /// The type used for representing velocities
     type Velocity;
 
@@ -73,5 +73,32 @@ pub trait MotionProfile {
     /// a loop.
     ///
     /// All other details of the motion profile are implementation-defined.
+    ///
+    /// If you need an iterator that produces the step delays, you can get one
+    /// by calling [`MotionProfile::iter`], which internally calls this method.
     fn next_delay(&mut self) -> Option<Self::Delay>;
+
+    /// Return an iterator over delay values
+    ///
+    /// This is a convenience method that returns an iterator which internally
+    /// just calls [`MotionProfile::next_delay`].
+    fn iter(&mut self) -> DelayIter<Self> {
+        DelayIter(self)
+    }
+}
+
+/// An iterator over delay values
+///
+/// Can be created by calling [`MotionProfile::iter`].
+pub struct DelayIter<'r, T>(pub &'r mut T);
+
+impl<'r, T> Iterator for DelayIter<'r, T>
+where
+    T: MotionProfile,
+{
+    type Item = T::Delay;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next_delay()
+    }
 }

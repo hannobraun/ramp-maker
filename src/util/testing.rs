@@ -39,12 +39,7 @@ pub fn position_mode_must_produce_correct_number_of_steps(
     let num_steps = 200;
     profile.enter_position_mode(1000.0, num_steps);
 
-    let mut count = 0;
-    while let Some(_delay) = profile.next_delay() {
-        count += 1;
-    }
-
-    assert_eq!(count, num_steps);
+    assert_eq!(profile.iter().count() as u32, num_steps);
 }
 
 /// A motion in position mode must respect the maximum velocity
@@ -56,7 +51,7 @@ pub fn position_mode_must_respect_maximum_velocity(
 
     let min_delay = 0.001;
 
-    while let Some(delay) = profile.next_delay() {
+    for delay in profile.iter() {
         println!("delay: {}, min_delay: {}", delay, min_delay);
         assert!(delay >= min_delay);
     }
