@@ -68,7 +68,6 @@ where
 {
     type Velocity = Num;
     type Delay = Num;
-    type Iter = Iter<Num>;
 
     fn enter_position_mode(
         &mut self,
@@ -79,47 +78,14 @@ where
         self.num_steps = num_steps;
     }
 
-    /// Generate the acceleration ramp
-    ///
-    /// The `num_steps` argument defines the number of steps to take. Returns an
-    /// iterator that yields one delay value per step, and `None` after that.
-    ///
-    /// Since this is the flat motion profile, all delay values yielded will be
-    /// the same (as defined by the target velocity passed to the constructor).
-    fn ramp(&self) -> Self::Iter {
-        Iter {
-            // This will panic, if `enter_position_mode` hasn't been called
-            // first. Typically I'd at least mention this in the method
-            // documentation, but this is only temporary, while I work on
-            // transitioning to a more flexible API.
-            delay: self.delay.unwrap(),
-            num_steps: self.num_steps,
-        }
-    }
-}
-
-/// The iterator returned by [`Flat`]
-///
-/// See [`Flat`]'s [`MotionProfile::ramp`] implementation
-pub struct Iter<Num> {
-    delay: Num,
-    num_steps: u32,
-}
-
-impl<Num> Iterator for Iter<Num>
-where
-    Num: Copy,
-{
-    type Item = Num;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_delay(&mut self) -> Option<Self::Delay> {
         if self.num_steps == 0 {
             return None;
         }
 
         self.num_steps -= 1;
 
-        Some(self.delay)
+        self.delay
     }
 }
 
@@ -140,7 +106,7 @@ mod tests {
         let mut flat = Flat::new();
 
         flat.enter_position_mode(2.0, 200);
-        for delay in flat.ramp() {
+        while let Some(delay) = flat.next_delay() {
             assert_eq!(delay, 0.5);
         }
     }

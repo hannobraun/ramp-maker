@@ -12,7 +12,7 @@ fn main() {
     let num_steps = 2000;
     profile.enter_position_mode(max_velocity, num_steps);
 
-    for delay in profile.ramp() {
+    while let Some(delay) = profile.next_delay() {
         // How you handle a delay depends on the platform you're running on
         // (RampMaker works pretty much everywhere). Here, we use a fake `Timer`
         // API, to demonstrate how the delays produced by RampMaker must be

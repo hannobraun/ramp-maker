@@ -44,9 +44,6 @@ pub trait MotionProfile {
     /// The type used for representing delay values
     type Delay;
 
-    /// The iterator returned by [`MotionProfile::ramp`]
-    type Iter: Iterator<Item = Self::Delay>;
-
     /// Enter position mode
     ///
     /// In position mode, the motion profile will attempt to move for a specific
@@ -61,23 +58,20 @@ pub trait MotionProfile {
         num_steps: u32,
     );
 
-    /// Generate the acceleration ramp
+    /// Return the next step delay
     ///
-    /// The returned iterator yields one value per step, as defined by the call
-    /// to [`enter_position_mode`], each value defining a delay between two
-    /// steps.
+    /// Produces the delay for the next step. The unit of this delay is
+    /// implementation-defined. `None` is returned, if no more steps need to be
+    /// taken. This happens when reaching the target step in position mode, or
+    /// if velocity is set to zero in either position or velocity mode.
     ///
-    /// Note that for n steps, only n-1 delay values are actually needed. The
-    /// additional delay value will lead to an unnecessary delay before the
-    /// first or after the last step. This was done to make accidental misuse of
-    /// this method less likely, as the most straight-forward use of this method
-    /// is to iterate over all values and make one step per value. If the
-    /// additional delay value is relevant for your application, you can just
-    /// ignore it.
+    /// Please note that motion profiles yield one value per step, even though
+    /// only n-1 delay values are needed for n steps. The additional delay value
+    /// will lead to an unnecessary delay before the first or after the last
+    /// step. This was done to make accidental misuse of this trait less likely,
+    /// as the most straight-forward use is to make one step per delay value in
+    /// a loop.
     ///
-    /// All other details of the acceleration ramp, as well as the unit of the
-    /// yielded delay values, are implementation-defined.
-    ///
-    /// [`enter_position_mode`]: MotionProfile::enter_position_mode
-    fn ramp(&self) -> Self::Iter;
+    /// All other details of the motion profile are implementation-defined.
+    fn next_delay(&mut self) -> Option<Self::Delay>;
 }

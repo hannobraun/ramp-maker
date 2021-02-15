@@ -69,6 +69,8 @@ use crate::{
 pub struct Trapezoidal<Num = DefaultNum> {
     delay_min: Option<Num>,
     delay_initial: Num,
+    delay_prev: Num,
+
     target_accel: Num,
     steps_left: u32,
 }
@@ -98,6 +100,8 @@ where
         Self {
             delay_min: None,
             delay_initial: initial_delay,
+            delay_prev: initial_delay,
+
             target_accel,
             steps_left: 0,
         }
@@ -127,7 +131,6 @@ where
 {
     type Velocity = Num;
     type Delay = Num;
-    type Iter = Iter<Num>;
 
     fn enter_position_mode(
         &mut self,
@@ -140,52 +143,10 @@ where
         self.steps_left = num_steps;
     }
 
-    fn ramp(&self) -> Self::Iter {
-        Iter {
-            // This will panic, if `enter_position_mode` hasn't been called
-            // first. Typically I'd at least mention this in the method
-            // documentation, but this is only temporary, while I work on
-            // transitioning to a more flexible API.
-            delay_min: self.delay_min.unwrap(),
-            delay_initial: self.delay_initial,
-            target_accel: self.target_accel,
+    fn next_delay(&mut self) -> Option<Self::Delay> {
+        // If we don't have a velocity, we can't produce a delay.
+        let delay_min = self.delay_min?;
 
-            steps_left: self.steps_left,
-
-            delay_prev: self.delay_initial,
-        }
-    }
-}
-
-/// The iterator returned by [`Trapezoidal`]
-///
-/// See [`Trapezoidal`]'s [`MotionProfile::ramp`] implementation
-pub struct Iter<Num> {
-    delay_min: Num,
-    delay_initial: Num,
-    target_accel: Num,
-
-    steps_left: u32,
-
-    delay_prev: Num,
-}
-
-impl<Num> Iterator for Iter<Num>
-where
-    Num: Copy
-        + PartialOrd
-        + az::Cast<u32>
-        + num_traits::One
-        + num_traits::Inv<Output = Num>
-        + ops::Add<Output = Num>
-        + ops::Sub<Output = Num>
-        + ops::Mul<Output = Num>
-        + ops::Div<Output = Num>
-        + Ceil,
-{
-    type Item = Num;
-
-    fn next(&mut self) -> Option<Self::Item> {
         if self.steps_left == 0 {
             return None;
         }
@@ -218,7 +179,7 @@ where
 
         // Ensure that `delay_min <= delay_next <= delay_initial`. See the
         // explanation following [20] in the referenced paper.
-        let delay_next = clamp_min(delay_next, self.delay_min);
+        let delay_next = clamp_min(delay_next, delay_min);
         let delay_next = clamp_max(delay_next, self.delay_initial);
 
         self.delay_prev = delay_next;
@@ -249,7 +210,7 @@ mod tests {
         let mut last_velocity = None;
 
         trapezoidal.enter_position_mode(1000.0, 200);
-        for delay in trapezoidal.ramp() {
+        while let Some(delay) = trapezoidal.next_delay() {
             let velocity = 1.0 / delay;
             println!("Velocity: {}", velocity);
             last_velocity = Some(velocity);
@@ -277,8 +238,10 @@ mod tests {
         let mut plateaued = false;
         let mut ramped_down = false;
 
+        let mut i = 0;
+
         trapezoidal.enter_position_mode(1000.0, 200);
-        for (i, delay_curr) in trapezoidal.ramp().enumerate() {
+        while let Some(delay_curr) = trapezoidal.next_delay() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
@@ -310,6 +273,8 @@ mod tests {
                     }
                 }
             }
+
+            i += 1;
         }
 
         assert!(ramped_up);
@@ -328,7 +293,9 @@ mod tests {
         trapezoidal.enter_position_mode(1000.0, num_steps);
 
         let mut delay_prev = None;
-        for (i, delay_curr) in trapezoidal.ramp().enumerate() {
+        let mut i = 0;
+
+        while let Some(delay_curr) = trapezoidal.next_delay() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
@@ -349,6 +316,8 @@ mod tests {
                     );
                 }
             }
+
+            i += 1;
         }
     }
 
