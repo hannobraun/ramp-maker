@@ -2,8 +2,6 @@
 //!
 //! See [`Flat`].
 
-use core::ops;
-
 use fixed::FixedU32;
 
 use crate::MotionProfile;
@@ -49,7 +47,7 @@ pub struct Flat<Num = DefaultNum> {
 
 impl<Num> Flat<Num>
 where
-    Num: num_traits::One + ops::Div<Output = Num>,
+    Num: num_traits::Inv<Output = Num>,
 {
     /// Create a `Flat` instance by passing a target velocity
     ///
@@ -60,7 +58,7 @@ where
     ///
     /// Panics, if `target_velocity` is zero.
     pub fn new(target_velocity: Num) -> Self {
-        let delay = Num::one() / target_velocity;
+        let delay = target_velocity.inv();
         Self { delay }
     }
 }
