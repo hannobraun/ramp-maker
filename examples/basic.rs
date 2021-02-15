@@ -6,10 +6,11 @@ fn main() {
     // RampMaker also supports fixed-point numbers though.
     let target_accel = 1000.0; // meters per second^2
     let max_velocity = 1500.0; // meters per second
-    let mut profile = ramp_maker::Trapezoidal::new(target_accel, max_velocity);
+
+    let mut profile = ramp_maker::Trapezoidal::new(target_accel);
 
     let num_steps = 2000;
-    profile.enter_position_mode(num_steps);
+    profile.enter_position_mode(max_velocity, num_steps);
 
     for delay in profile.ramp() {
         // How you handle a delay depends on the platform you're running on

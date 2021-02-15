@@ -38,6 +38,9 @@ pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 /// write abstract code that doesn't care about the specific motion profile
 /// used.
 pub trait MotionProfile {
+    /// The type used for representing velocities
+    type Velocity;
+
     /// The type used for representing delay values
     type Delay;
 
@@ -52,7 +55,11 @@ pub trait MotionProfile {
     /// The number of steps given here is always relative to the current
     /// position, as implementations of this trait are not expected to keep
     /// track of an absolute position.
-    fn enter_position_mode(&mut self, num_steps: u32);
+    fn enter_position_mode(
+        &mut self,
+        max_velocity: Self::Velocity,
+        num_steps: u32,
+    );
 
     /// Generate the acceleration ramp
     ///

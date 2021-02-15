@@ -42,26 +42,15 @@ use crate::MotionProfile;
 /// hardware support for floating point numbers is available. You can override
 /// it with other types from the `fixed` crate, or `f32`/`f64`, for example.
 pub struct Flat<Num = DefaultNum> {
-    delay: Num,
+    delay: Option<Num>,
     num_steps: u32,
 }
 
-impl<Num> Flat<Num>
-where
-    Num: num_traits::Inv<Output = Num>,
-{
-    /// Create a `Flat` instance by passing a target velocity
-    ///
-    /// The target velocity is specified in steps per unit of time (see
-    /// top-level documentation of this struct) and must not be zero.
-    ///
-    /// # Panics
-    ///
-    /// Panics, if `target_velocity` is zero.
-    pub fn new(target_velocity: Num) -> Self {
-        let delay = target_velocity.inv();
+impl<Num> Flat<Num> {
+    /// Create a new instance of `Flat`
+    pub fn new() -> Self {
         Self {
-            delay,
+            delay: None,
             num_steps: 0,
         }
     }
@@ -71,18 +60,24 @@ where
 #[cfg(test)]
 impl Default for Flat<f32> {
     fn default() -> Self {
-        Self::new(1000.0)
+        Self::new()
     }
 }
 
 impl<Num> MotionProfile for Flat<Num>
 where
-    Num: Copy,
+    Num: Copy + num_traits::Inv<Output = Num>,
 {
+    type Velocity = Num;
     type Delay = Num;
     type Iter = Iter<Num>;
 
-    fn enter_position_mode(&mut self, num_steps: u32) {
+    fn enter_position_mode(
+        &mut self,
+        max_velocity: Self::Velocity,
+        num_steps: u32,
+    ) {
+        self.delay = Some(max_velocity.inv());
         self.num_steps = num_steps;
     }
 
@@ -95,7 +90,11 @@ where
     /// the same (as defined by the target velocity passed to the constructor).
     fn ramp(&self) -> Self::Iter {
         Iter {
-            delay: self.delay,
+            // This will panic, if `enter_position_mode` hasn't been called
+            // first. Typically I'd at least mention this in the method
+            // documentation, but this is only temporary, while I work on
+            // transitioning to a more flexible API.
+            delay: self.delay.unwrap(),
             num_steps: self.num_steps,
         }
     }
@@ -140,9 +139,9 @@ mod tests {
 
     #[test]
     fn flat_should_produce_constant_velocity() {
-        let mut flat = Flat::new(2.0); // steps per second
+        let mut flat = Flat::new();
 
-        flat.enter_position_mode(200);
+        flat.enter_position_mode(2.0, 200);
         for delay in flat.ramp() {
             assert_eq!(delay, 0.5);
         }

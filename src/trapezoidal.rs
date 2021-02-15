@@ -67,7 +67,7 @@ use crate::{
 /// out the section on Cargo features from the documentation in the root module
 /// to learn how to enable it.
 pub struct Trapezoidal<Num = DefaultNum> {
-    delay_min: Num,
+    delay_min: Option<Num>,
     delay_initial: Num,
     target_accel: Num,
     steps_left: u32,
@@ -77,33 +77,26 @@ impl<Num> Trapezoidal<Num>
 where
     Num: Copy
         + num_traits::One
-        + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
         + ops::Div<Output = Num>
         + Sqrt,
 {
     /// Create a new instance of `Trapezoidal`
     ///
-    /// Accepts two arguments:
-    /// - `target_accel`, the target acceleration in steps per (unit of time)^2.
-    /// - `max_velocity`, the maximum velocity in steps per unit of time.
-    ///
-    /// Both parameters must not be zero. See the struct documentation for
+    /// Accepts the target acceleration in steps per (unit of time)^2 as an
+    /// argument. It must not be zero. See the struct documentation for
     /// information about units of time.
     ///
     /// # Panics
     ///
-    /// Panics, if `target_accel` or `max_velocity` are zero.
-    pub fn new(target_accel: Num, max_velocity: Num) -> Self {
-        // Based on equation [7] in the reference paper.
-        let min_delay = max_velocity.inv();
-
+    /// Panics, if `target_accel` is zero.
+    pub fn new(target_accel: Num) -> Self {
         // Based on equation [17] in the referenced paper.
         let two = Num::one() + Num::one();
         let initial_delay = Num::one() / (two * target_accel).sqrt();
 
         Self {
-            delay_min: min_delay,
+            delay_min: None,
             delay_initial: initial_delay,
             target_accel,
             steps_left: 0,
@@ -115,7 +108,7 @@ where
 #[cfg(test)]
 impl Default for Trapezoidal<f32> {
     fn default() -> Self {
-        Self::new(6000.0, 1000.0)
+        Self::new(6000.0)
     }
 }
 
@@ -132,16 +125,28 @@ where
         + ops::Div<Output = Num>
         + Ceil,
 {
+    type Velocity = Num;
     type Delay = Num;
     type Iter = Iter<Num>;
 
-    fn enter_position_mode(&mut self, num_steps: u32) {
+    fn enter_position_mode(
+        &mut self,
+        max_velocity: Self::Velocity,
+        num_steps: u32,
+    ) {
+        // Based on equation [7] in the reference paper.
+        self.delay_min = Some(max_velocity.inv());
+
         self.steps_left = num_steps;
     }
 
     fn ramp(&self) -> Self::Iter {
         Iter {
-            delay_min: self.delay_min,
+            // This will panic, if `enter_position_mode` hasn't been called
+            // first. Typically I'd at least mention this in the method
+            // documentation, but this is only temporary, while I work on
+            // transitioning to a more flexible API.
+            delay_min: self.delay_min.unwrap(),
             delay_initial: self.delay_initial,
             target_accel: self.target_accel,
 
@@ -239,11 +244,13 @@ mod tests {
 
     #[test]
     fn trapezoidal_should_respect_maximum_velocity() {
+        let mut trapezoidal = Trapezoidal::new(6000.0);
+
         let max_velocity = 1000.0; // steps per second
-        let mut trapezoidal = Trapezoidal::new(6000.0, max_velocity);
+        trapezoidal.enter_position_mode(max_velocity, 200);
 
         let min_delay = 0.001; // seconds
-        trapezoidal.enter_position_mode(200);
+
         for delay in trapezoidal.ramp() {
             println!("delay: {}, min_delay: {}", delay, min_delay);
             assert!(delay >= min_delay);
@@ -252,11 +259,11 @@ mod tests {
 
     #[test]
     fn trapezoidal_should_come_to_stop_with_last_step() {
-        let mut trapezoidal = Trapezoidal::new(6000.0, 1000.0);
+        let mut trapezoidal = Trapezoidal::new(6000.0);
 
         let mut last_velocity = None;
 
-        trapezoidal.enter_position_mode(200);
+        trapezoidal.enter_position_mode(1000.0, 200);
         for delay in trapezoidal.ramp() {
             let velocity = 1.0 / delay;
             println!("Velocity: {}", velocity);
@@ -276,7 +283,7 @@ mod tests {
 
     #[test]
     fn trapezoidal_should_generate_actual_trapezoidal_ramp() {
-        let mut trapezoidal = Trapezoidal::new(6000.0, 1000.0);
+        let mut trapezoidal = Trapezoidal::new(6000.0);
 
         let mut mode = Mode::RampUp;
         let mut delay_prev = None;
@@ -285,7 +292,7 @@ mod tests {
         let mut plateaued = false;
         let mut ramped_down = false;
 
-        trapezoidal.enter_position_mode(200);
+        trapezoidal.enter_position_mode(1000.0, 200);
         for (i, delay_curr) in trapezoidal.ramp().enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
@@ -328,15 +335,14 @@ mod tests {
     #[test]
     fn trapezoidal_should_generate_ramp_with_approximate_target_acceleration() {
         let target_accel = 6000.0;
-        let mut trapezoidal = Trapezoidal::new(target_accel, 1000.0);
+        let mut trapezoidal = Trapezoidal::new(target_accel);
 
         // Make the ramp so short that it becomes triangular. This makes testing
         // a bit easier, as we don't have to deal with the plateau.
         let num_steps = 100;
-        trapezoidal.enter_position_mode(num_steps);
+        trapezoidal.enter_position_mode(1000.0, num_steps);
 
         let mut delay_prev = None;
-
         for (i, delay_curr) in trapezoidal.ramp().enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)

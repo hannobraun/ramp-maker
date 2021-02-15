@@ -11,9 +11,15 @@
 #![cfg(test)]
 
 /// Alias for [`crate::MotionProfile`] with some extras, used by the tests here
-pub trait MotionProfile: crate::MotionProfile + Default {}
+pub trait MotionProfile:
+    crate::MotionProfile<Velocity = f32> + Default
+{
+}
 
-impl<T> MotionProfile for T where T: crate::MotionProfile + Default {}
+impl<T> MotionProfile for T where
+    T: crate::MotionProfile<Velocity = f32> + Default
+{
+}
 
 /// Run full test suite on the provided [`MotionProfile`] implementation
 pub fn test<Profile>()
@@ -28,7 +34,7 @@ pub fn position_mode_must_produce_correct_number_of_steps(
     mut profile: impl MotionProfile,
 ) {
     let num_steps = 200;
-    profile.enter_position_mode(num_steps);
+    profile.enter_position_mode(1000.0, num_steps);
 
     assert_eq!(profile.ramp().count() as u32, num_steps);
 }
