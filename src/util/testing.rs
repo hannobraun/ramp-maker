@@ -25,8 +25,10 @@ where
 
 /// A motion in position mode must produce the correct number of steps
 pub fn position_mode_must_produce_correct_number_of_steps(
-    profile: impl MotionProfile,
+    mut profile: impl MotionProfile,
 ) {
     let num_steps = 200;
-    assert_eq!(profile.ramp(num_steps).count() as u32, num_steps);
+    profile.enter_position_mode(num_steps);
+
+    assert_eq!(profile.ramp().count() as u32, num_steps);
 }

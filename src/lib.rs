@@ -44,11 +44,21 @@ pub trait MotionProfile {
     /// The iterator returned by [`MotionProfile::ramp`]
     type Iter: Iterator<Item = Self::Delay>;
 
+    /// Enter position mode
+    ///
+    /// In position mode, the motion profile will attempt to move for a specific
+    /// number of steps and come to a stand-still at the target step.
+    ///
+    /// The number of steps given here is always relative to the current
+    /// position, as implementations of this trait are not expected to keep
+    /// track of an absolute position.
+    fn enter_position_mode(&mut self, num_steps: u32);
+
     /// Generate the acceleration ramp
     ///
-    /// `num_steps` defines the number of steps in the acceleration ramp. The
-    /// returned iterator yields one value per step, each value defining a delay
-    /// between two steps.
+    /// The returned iterator yields one value per step, as defined by the call
+    /// to [`enter_position_mode`], each value defining a delay between two
+    /// steps.
     ///
     /// Note that for n steps, only n-1 delay values are actually needed. The
     /// additional delay value will lead to an unnecessary delay before the
@@ -60,5 +70,7 @@ pub trait MotionProfile {
     ///
     /// All other details of the acceleration ramp, as well as the unit of the
     /// yielded delay values, are implementation-defined.
-    fn ramp(&self, num_steps: u32) -> Self::Iter;
+    ///
+    /// [`enter_position_mode`]: MotionProfile::enter_position_mode
+    fn ramp(&self) -> Self::Iter;
 }

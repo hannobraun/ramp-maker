@@ -43,6 +43,7 @@ use crate::MotionProfile;
 /// it with other types from the `fixed` crate, or `f32`/`f64`, for example.
 pub struct Flat<Num = DefaultNum> {
     delay: Num,
+    num_steps: u32,
 }
 
 impl<Num> Flat<Num>
@@ -59,7 +60,10 @@ where
     /// Panics, if `target_velocity` is zero.
     pub fn new(target_velocity: Num) -> Self {
         let delay = target_velocity.inv();
-        Self { delay }
+        Self {
+            delay,
+            num_steps: 0,
+        }
     }
 }
 
@@ -78,6 +82,10 @@ where
     type Delay = Num;
     type Iter = Iter<Num>;
 
+    fn enter_position_mode(&mut self, num_steps: u32) {
+        self.num_steps = num_steps;
+    }
+
     /// Generate the acceleration ramp
     ///
     /// The `num_steps` argument defines the number of steps to take. Returns an
@@ -85,10 +93,10 @@ where
     ///
     /// Since this is the flat motion profile, all delay values yielded will be
     /// the same (as defined by the target velocity passed to the constructor).
-    fn ramp(&self, num_steps: u32) -> Self::Iter {
+    fn ramp(&self) -> Self::Iter {
         Iter {
             delay: self.delay,
-            num_steps,
+            num_steps: self.num_steps,
         }
     }
 }
@@ -132,9 +140,10 @@ mod tests {
 
     #[test]
     fn flat_should_produce_constant_velocity() {
-        let flat = Flat::new(2.0); // steps per second
+        let mut flat = Flat::new(2.0); // steps per second
 
-        for delay in flat.ramp(200) {
+        flat.enter_position_mode(200);
+        for delay in flat.ramp() {
             assert_eq!(delay, 0.5);
         }
     }
