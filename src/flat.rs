@@ -80,8 +80,6 @@ where
     fn ramp(&self, num_steps: u32) -> Self::Iter {
         Iter {
             delay: self.delay,
-
-            step: 0,
             num_steps,
         }
     }
@@ -92,8 +90,6 @@ where
 /// See [`Flat`]'s [`MotionProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay: Num,
-
-    step: u32,
     num_steps: u32,
 }
 
@@ -104,11 +100,11 @@ where
     type Item = Num;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.step >= self.num_steps {
+        if self.num_steps == 0 {
             return None;
         }
 
-        self.step += 1;
+        self.num_steps -= 1;
 
         Some(self.delay)
     }
