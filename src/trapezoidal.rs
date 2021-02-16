@@ -4,14 +4,9 @@
 
 use core::ops;
 
-use fixed::types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8};
-use fixed_sqrt::{
-    traits::{IsEven, LtU128, LtU16, LtU32, LtU64, LtU8},
-    FixedSqrt,
-};
 use num_traits::{clamp_max, clamp_min};
 
-use crate::MotionProfile;
+use crate::{util::traits::Sqrt, MotionProfile};
 
 /// Trapezoidal motion profile
 ///
@@ -202,88 +197,6 @@ where
 
 /// The default numeric type used by [`Trapezoidal`]
 pub type DefaultNum = fixed::FixedU64<typenum::U32>;
-
-/// Defines an interface to the square root operation
-///
-/// The code in this method is generic over the number it uses, however, there
-/// currently seems to be a hole in the ecosystem regarding square roots.
-/// There's [fixed-sqrt], but it's for numbers from `fixed` only. Then there's
-/// `Real` from [num-traits], but this trait is not implemented for the [fixed]
-/// types.
-///
-/// This custom trait fills the gap, by defining a square root method and
-/// providing implementations for `f32`, `f64`, and all types from the `fixed`
-/// crate.
-///
-/// [fixed-sqrt]: https://crates.io/crates/fixed-sqrt
-/// [num-traits]: https://crates.io/crates/num-traits
-/// [fixed]: https://crates.io/crates/fixed
-pub trait Sqrt {
-    /// Return the square root of `self`
-    ///
-    /// This method can't be called `sqrt`, as that would conflict with the
-    /// `sqrt` method of `f32` and `f64`, and fully qualified syntax doesn't
-    /// work for those, it seems (at least it didn't work for me, right here).
-    fn sqrt2(self) -> Self;
-}
-
-#[cfg(any(test, feature = "std"))]
-impl Sqrt for f32 {
-    fn sqrt2(self) -> Self {
-        self.sqrt()
-    }
-}
-
-#[cfg(any(test, feature = "std"))]
-impl Sqrt for f64 {
-    fn sqrt2(self) -> Self {
-        self.sqrt()
-    }
-}
-
-#[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
-impl Sqrt for f32 {
-    fn sqrt2(self) -> Self {
-        libm::sqrtf(self)
-    }
-}
-
-#[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
-impl Sqrt for f64 {
-    fn sqrt2(self) -> Self {
-        libm::sqrt(self)
-    }
-}
-
-macro_rules! impl_fixed {
-    ($($num:ident, ($($bound:ident),*);)*) => {
-        $(
-            impl<U> Sqrt for fixed::$num<U>
-            where
-                $(U: $bound,)*
-            {
-                fn sqrt2(self) -> Self {
-                    <Self as FixedSqrt>::sqrt(self)
-                }
-            }
-        )*
-    };
-}
-
-// Can't use a blanket impl, as that would conflict with any other impl that
-// anyone might want to provide.
-impl_fixed!(
-    FixedU8, (LeEqU8);
-    FixedU16, (LeEqU16);
-    FixedU32, (LeEqU32);
-    FixedU64, (LeEqU64);
-    FixedU128, (LeEqU128, IsEven);
-    FixedI8, (LtU8);
-    FixedI16, (LtU16);
-    FixedI32, (LtU32);
-    FixedI64, (LtU64);
-    FixedI128, (LtU128);
-);
 
 #[cfg(test)]
 mod tests {
