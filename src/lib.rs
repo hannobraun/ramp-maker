@@ -28,6 +28,7 @@
 
 pub mod flat;
 pub mod trapezoidal;
+pub mod util;
 
 pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 
