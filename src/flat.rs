@@ -2,8 +2,6 @@
 //!
 //! See [`Flat`].
 
-use core::ops;
-
 use fixed::FixedU32;
 
 use crate::MotionProfile;
@@ -49,7 +47,7 @@ pub struct Flat<Num = DefaultNum> {
 
 impl<Num> Flat<Num>
 where
-    Num: num_traits::One + ops::Div<Output = Num>,
+    Num: num_traits::Inv<Output = Num>,
 {
     /// Create a `Flat` instance by passing a target velocity
     ///
@@ -60,7 +58,7 @@ where
     ///
     /// Panics, if `target_velocity` is zero.
     pub fn new(target_velocity: Num) -> Self {
-        let delay = Num::one() / target_velocity;
+        let delay = target_velocity.inv();
         Self { delay }
     }
 }
@@ -82,8 +80,6 @@ where
     fn ramp(&self, num_steps: u32) -> Self::Iter {
         Iter {
             delay: self.delay,
-
-            step: 0,
             num_steps,
         }
     }
@@ -94,8 +90,6 @@ where
 /// See [`Flat`]'s [`MotionProfile::ramp`] implementation
 pub struct Iter<Num> {
     delay: Num,
-
-    step: u32,
     num_steps: u32,
 }
 
@@ -106,11 +100,11 @@ where
     type Item = Num;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.step >= self.num_steps {
+        if self.num_steps == 0 {
             return None;
         }
 
-        self.step += 1;
+        self.num_steps -= 1;
 
         Some(self.delay)
     }
