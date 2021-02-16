@@ -65,10 +65,11 @@ where
     }
 }
 
-impl<Num> MotionProfile<Num> for Flat<Num>
+impl<Num> MotionProfile for Flat<Num>
 where
     Num: Copy,
 {
+    type Delay = Num;
     type Iter = Iter<Num>;
 
     /// Generate the acceleration ramp
@@ -78,7 +79,7 @@ where
     ///
     /// Since this is the flat motion profile, all delay values yielded will be
     /// the same (as defined by the target velocity passed to the constructor).
-    fn ramp(&self, num_steps: usize) -> Self::Iter {
+    fn ramp(&self, num_steps: u32) -> Self::Iter {
         Iter {
             delay: self.delay,
 
@@ -94,8 +95,8 @@ where
 pub struct Iter<Num> {
     delay: Num,
 
-    step: usize,
-    num_steps: usize,
+    step: u32,
+    num_steps: u32,
 }
 
 impl<Num> Iterator for Iter<Num>
@@ -127,7 +128,7 @@ mod tests {
         let flat = Flat::new(2.0); // steps per second
 
         let num_steps = 200;
-        assert_eq!(flat.ramp(num_steps).count(), num_steps);
+        assert_eq!(flat.ramp(num_steps).count() as u32, num_steps);
     }
 
     #[test]

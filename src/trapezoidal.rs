@@ -111,7 +111,7 @@ where
     }
 }
 
-impl<Num> MotionProfile<Num> for Trapezoidal<Num>
+impl<Num> MotionProfile for Trapezoidal<Num>
 where
     Num: Copy
         + PartialOrd
@@ -120,9 +120,10 @@ where
         + ops::Sub<Output = Num>
         + ops::Mul<Output = Num>,
 {
+    type Delay = Num;
     type Iter = Iter<Num>;
 
-    fn ramp(&self, num_steps: usize) -> Self::Iter {
+    fn ramp(&self, num_steps: u32) -> Self::Iter {
         Iter {
             delay_min: self.delay_min,
             delay_initial: self.delay_initial,
@@ -144,8 +145,8 @@ pub struct Iter<Num> {
     delay_initial: Num,
     target_accel: Num,
 
-    step: usize,
-    num_steps: usize,
+    step: u32,
+    num_steps: u32,
 
     delay_prev: Num,
 }
@@ -293,7 +294,7 @@ mod tests {
         let trapezoidal = Trapezoidal::new(6000.0, 1000.0);
 
         let num_steps = 200;
-        assert_eq!(trapezoidal.ramp(num_steps).count(), num_steps);
+        assert_eq!(trapezoidal.ramp(num_steps).count() as u32, num_steps);
     }
 
     #[test]
