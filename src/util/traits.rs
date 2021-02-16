@@ -29,30 +29,32 @@ pub trait Sqrt {
 }
 
 #[cfg(any(test, feature = "std"))]
-impl Sqrt for f32 {
-    fn sqrt2(self) -> Self {
-        self.sqrt()
+mod impl_using_std {
+    impl super::Sqrt for f32 {
+        fn sqrt2(self) -> Self {
+            self.sqrt()
+        }
     }
-}
 
-#[cfg(any(test, feature = "std"))]
-impl Sqrt for f64 {
-    fn sqrt2(self) -> Self {
-        self.sqrt()
-    }
-}
-
-#[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
-impl Sqrt for f32 {
-    fn sqrt2(self) -> Self {
-        libm::sqrtf(self)
+    impl super::Sqrt for f64 {
+        fn sqrt2(self) -> Self {
+            self.sqrt()
+        }
     }
 }
 
 #[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
-impl Sqrt for f64 {
-    fn sqrt2(self) -> Self {
-        libm::sqrt(self)
+mod impl_using_libm {
+    impl super::Sqrt for f32 {
+        fn sqrt2(self) -> Self {
+            libm::sqrtf(self)
+        }
+    }
+
+    impl super::Sqrt for f64 {
+        fn sqrt2(self) -> Self {
+            libm::sqrt(self)
+        }
     }
 }
 
