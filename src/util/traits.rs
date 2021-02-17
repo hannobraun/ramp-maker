@@ -12,12 +12,6 @@
 //! [num-traits]: https://crates.io/crates/num-traits
 //! [fixed]: https://crates.io/crates/fixed
 
-use fixed::types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8};
-use fixed_sqrt::{
-    traits::{IsEven, LtU128, LtU16, LtU32, LtU64, LtU8},
-    FixedSqrt,
-};
-
 /// Defines an interface to the square root operation
 pub trait Sqrt {
     /// Return the square root of `self`
@@ -58,32 +52,40 @@ mod impl_using_libm {
     }
 }
 
-macro_rules! impl_fixed {
-    ($($num:ident, ($($bound:ident),*);)*) => {
-        $(
-            impl<U> Sqrt for fixed::$num<U>
-            where
-                $(U: $bound,)*
-            {
-                fn sqrt2(self) -> Self {
-                    <Self as FixedSqrt>::sqrt(self)
-                }
-            }
-        )*
+mod impl_fixed {
+    use fixed::types::extra::{LeEqU128, LeEqU16, LeEqU32, LeEqU64, LeEqU8};
+    use fixed_sqrt::{
+        traits::{IsEven, LtU128, LtU16, LtU32, LtU64, LtU8},
+        FixedSqrt,
     };
-}
 
-// Can't use a blanket impl, as that would conflict with any other impl that
-// anyone might want to provide.
-impl_fixed!(
-    FixedU8, (LeEqU8);
-    FixedU16, (LeEqU16);
-    FixedU32, (LeEqU32);
-    FixedU64, (LeEqU64);
-    FixedU128, (LeEqU128, IsEven);
-    FixedI8, (LtU8);
-    FixedI16, (LtU16);
-    FixedI32, (LtU32);
-    FixedI64, (LtU64);
-    FixedI128, (LtU128);
-);
+    macro_rules! impl_fixed {
+        ($($num:ident, ($($bound:ident),*);)*) => {
+            $(
+                impl<U> super::Sqrt for fixed::$num<U>
+                where
+                    $(U: $bound,)*
+                {
+                    fn sqrt2(self) -> Self {
+                        <Self as FixedSqrt>::sqrt(self)
+                    }
+                }
+            )*
+        };
+    }
+
+    // Can't use a blanket impl, as that would conflict with any other impl that
+    // anyone might want to provide.
+    impl_fixed!(
+        FixedU8, (LeEqU8);
+        FixedU16, (LeEqU16);
+        FixedU32, (LeEqU32);
+        FixedU64, (LeEqU64);
+        FixedU128, (LeEqU128, IsEven);
+        FixedI8, (LtU8);
+        FixedI16, (LtU16);
+        FixedI32, (LtU32);
+        FixedI64, (LtU64);
+        FixedI128, (LtU128);
+    );
+}
