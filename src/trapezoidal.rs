@@ -132,7 +132,7 @@ where
             delay_initial: self.delay_initial,
             target_accel: self.target_accel,
 
-            num_steps,
+            steps_left: num_steps,
 
             delay_prev: self.delay_initial,
         }
@@ -147,7 +147,7 @@ pub struct Iter<Num> {
     delay_initial: Num,
     target_accel: Num,
 
-    num_steps: u32,
+    steps_left: u32,
 
     delay_prev: Num,
 }
@@ -168,7 +168,7 @@ where
     type Item = Num;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.num_steps == 0 {
+        if self.steps_left == 0 {
             return None;
         }
 
@@ -182,7 +182,7 @@ where
         //
         // We don't differentiate between acceleration and plateau here, as we
         // clamp the delay value further down anyway, which creates the plateau.
-        let delay_next = if self.num_steps > steps_to_stop {
+        let delay_next = if self.steps_left > steps_to_stop {
             // Ramping up
             self.delay_prev
                 * (Num::one()
@@ -200,7 +200,7 @@ where
         let delay_next = clamp_max(delay_next, self.delay_initial);
 
         self.delay_prev = delay_next;
-        self.num_steps -= 1;
+        self.steps_left -= 1;
 
         Some(delay_next)
     }
