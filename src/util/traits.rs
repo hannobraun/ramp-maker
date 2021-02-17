@@ -15,23 +15,19 @@
 /// Defines an interface to the square root operation
 pub trait Sqrt {
     /// Return the square root of `self`
-    ///
-    /// This method can't be called `sqrt`, as that would conflict with the
-    /// `sqrt` method of `f32` and `f64`, and fully qualified syntax doesn't
-    /// work for those, it seems (at least it didn't work for me, right here).
-    fn sqrt2(self) -> Self;
+    fn sqrt(self) -> Self;
 }
 
 #[cfg(any(test, feature = "std"))]
 mod impl_using_std {
     impl super::Sqrt for f32 {
-        fn sqrt2(self) -> Self {
+        fn sqrt(self) -> Self {
             f32::sqrt(self)
         }
     }
 
     impl super::Sqrt for f64 {
-        fn sqrt2(self) -> Self {
+        fn sqrt(self) -> Self {
             f64::sqrt(self)
         }
     }
@@ -40,13 +36,13 @@ mod impl_using_std {
 #[cfg(all(not(test), not(feature = "std"), feature = "libm"))]
 mod impl_using_libm {
     impl super::Sqrt for f32 {
-        fn sqrt2(self) -> Self {
+        fn sqrt(self) -> Self {
             libm::sqrtf(self)
         }
     }
 
     impl super::Sqrt for f64 {
-        fn sqrt2(self) -> Self {
+        fn sqrt(self) -> Self {
             libm::sqrt(self)
         }
     }
@@ -66,7 +62,7 @@ mod impl_fixed {
                 where
                     $(U: $bound,)*
                 {
-                    fn sqrt2(self) -> Self {
+                    fn sqrt(self) -> Self {
                         <Self as FixedSqrt>::sqrt(self)
                     }
                 }

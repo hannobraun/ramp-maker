@@ -96,7 +96,7 @@ where
 
         // Based on equation [17] in the referenced paper.
         let two = Num::one() + Num::one();
-        let initial_delay = Num::one() / (two * target_accel).sqrt2();
+        let initial_delay = Num::one() / (two * target_accel).sqrt();
 
         Self {
             delay_min: min_delay,
