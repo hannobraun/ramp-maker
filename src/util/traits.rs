@@ -26,13 +26,13 @@ pub trait Sqrt {
 mod impl_using_std {
     impl super::Sqrt for f32 {
         fn sqrt2(self) -> Self {
-            self.sqrt()
+            f32::sqrt(self)
         }
     }
 
     impl super::Sqrt for f64 {
         fn sqrt2(self) -> Self {
-            self.sqrt()
+            f64::sqrt(self)
         }
     }
 }
