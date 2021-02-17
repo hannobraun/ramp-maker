@@ -56,11 +56,16 @@ mod impl_fixed {
     };
 
     macro_rules! impl_fixed {
-        ($($num:ident, ($($bound:ident),*);)*) => {
+        ($
+            (
+                $num:ident:
+                    Sqrt => ($($sqrt_bound:ident),*)
+            )*
+        ) => {
             $(
                 impl<U> super::Sqrt for fixed::$num<U>
                 where
-                    $(U: $bound,)*
+                    $(U: $sqrt_bound,)*
                 {
                     fn sqrt(self) -> Self {
                         <Self as FixedSqrt>::sqrt(self)
@@ -73,15 +78,25 @@ mod impl_fixed {
     // Can't use a blanket impl, as that would conflict with any other impl that
     // anyone might want to provide.
     impl_fixed!(
-        FixedU8, (LeEqU8);
-        FixedU16, (LeEqU16);
-        FixedU32, (LeEqU32);
-        FixedU64, (LeEqU64);
-        FixedU128, (LeEqU128, IsEven);
-        FixedI8, (LtU8);
-        FixedI16, (LtU16);
-        FixedI32, (LtU32);
-        FixedI64, (LtU64);
-        FixedI128, (LtU128);
+        FixedU8:
+            Sqrt => (LeEqU8)
+        FixedU16:
+            Sqrt => (LeEqU16)
+        FixedU32:
+            Sqrt => (LeEqU32)
+        FixedU64:
+            Sqrt => (LeEqU64)
+        FixedU128:
+            Sqrt => (LeEqU128, IsEven)
+        FixedI8:
+            Sqrt => (LtU8)
+        FixedI16:
+            Sqrt => (LtU16)
+        FixedI32:
+            Sqrt => (LtU32)
+        FixedI64:
+            Sqrt => (LtU64)
+        FixedI128:
+            Sqrt => (LtU128)
     );
 }
