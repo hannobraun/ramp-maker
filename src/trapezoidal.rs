@@ -288,16 +288,12 @@ mod tests {
         let target_accel = 6000.0;
         let trapezoidal = Trapezoidal::new(target_accel, 1000.0);
 
-        let mut previous_mode = None;
-
         let mut delay_prev = None;
         for (i, delay_curr) in trapezoidal.ramp(200).enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
                 println!("{}: {}, {}", i, target_accel, accel);
-
-                let current_mode = Some(Mode::from_accel(accel));
 
                 // Only check acceleration for ramp-up and ramp-down.
                 if accel != 0.0 {
@@ -311,26 +307,7 @@ mod tests {
                             accel, target_accel
                         );
                     }
-                    if accel.abs() < target_accel * (1.0 - ALLOWABLE_ERROR) {
-                        if previous_mode == Some(Mode::Plateau)
-                            && current_mode == Some(Mode::RampDown)
-                        {
-                            // At the transition from plateau to ramping down,
-                            // the acceleration can be much lower than the
-                            // target for a single step, due to the way the
-                            // algorithm works.
-                            //
-                            // This is acceptable, so we let it slide here.
-                        } else {
-                            panic!(
-                                "Acceleration too low: {:.0} (target {:.0})",
-                                accel, target_accel
-                            );
-                        }
-                    }
                 }
-
-                previous_mode = current_mode;
             }
         }
     }
@@ -340,21 +317,6 @@ mod tests {
         RampUp,
         Plateau,
         RampDown,
-    }
-
-    impl Mode {
-        fn from_accel(accel: f32) -> Self {
-            match accel {
-                accel if accel > 0.0 => Self::RampUp,
-                accel if accel == 0.0 => Self::Plateau,
-                accel if accel < 0.0 => Self::RampDown,
-
-                accel => {
-                    // Must be NaN
-                    panic!("Unexpected acceleration: {}", accel);
-                }
-            }
-        }
     }
 
     /// Computes an acceleration value from two adjacent delays
