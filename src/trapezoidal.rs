@@ -211,6 +211,8 @@ pub type DefaultNum = fixed::FixedU64<typenum::U32>;
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use crate::{MotionProfile as _, Trapezoidal};
 
     #[test]
@@ -297,16 +299,13 @@ mod tests {
 
                 // Only check acceleration for ramp-up and ramp-down.
                 if accel != 0.0 {
-                    // It's much more accurate for the most part, but can be
-                    // quite inaccurate at the beginning and end.
-                    const ALLOWABLE_ERROR: f32 = 0.25;
-
-                    if accel.abs() > target_accel * (1.0 + ALLOWABLE_ERROR) {
-                        panic!(
-                            "Acceleration too high: {:.0} (target {:.0})",
-                            accel, target_accel
-                        );
-                    }
+                    assert_abs_diff_eq!(
+                        accel.abs(),
+                        target_accel,
+                        // It's much more accurate for the most part, but can be
+                        // quite inaccurate at the beginning and end.
+                        epsilon = target_accel * 0.25,
+                    );
                 }
             }
         }
