@@ -4,9 +4,13 @@
 
 use core::ops;
 
+use az::Az as _;
 use num_traits::{clamp_max, clamp_min};
 
-use crate::{util::traits::Sqrt, MotionProfile};
+use crate::{
+    util::traits::{Ceil, Sqrt},
+    MotionProfile,
+};
 
 /// Trapezoidal motion profile
 ///
@@ -110,10 +114,14 @@ impl<Num> MotionProfile for Trapezoidal<Num>
 where
     Num: Copy
         + PartialOrd
+        + az::Cast<u32>
         + num_traits::One
+        + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
         + ops::Sub<Output = Num>
-        + ops::Mul<Output = Num>,
+        + ops::Mul<Output = Num>
+        + ops::Div<Output = Num>
+        + Ceil,
 {
     type Delay = Num;
     type Iter = Iter<Num>;
@@ -124,8 +132,7 @@ where
             delay_initial: self.delay_initial,
             target_accel: self.target_accel,
 
-            step: 1,
-            num_steps,
+            steps_left: num_steps,
 
             delay_prev: self.delay_initial,
         }
@@ -140,8 +147,7 @@ pub struct Iter<Num> {
     delay_initial: Num,
     target_accel: Num,
 
-    step: u32,
-    num_steps: u32,
+    steps_left: u32,
 
     delay_prev: Num,
 }
@@ -150,27 +156,33 @@ impl<Num> Iterator for Iter<Num>
 where
     Num: Copy
         + PartialOrd
+        + az::Cast<u32>
         + num_traits::One
+        + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
         + ops::Sub<Output = Num>
-        + ops::Mul<Output = Num>,
+        + ops::Mul<Output = Num>
+        + ops::Div<Output = Num>
+        + Ceil,
 {
     type Item = Num;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.step > self.num_steps {
+        if self.steps_left == 0 {
             return None;
         }
+
+        let velocity = self.delay_prev.inv();
+        let two = Num::one() + Num::one();
+        let steps_to_stop = (velocity * velocity) / (two * self.target_accel);
+        let steps_to_stop = steps_to_stop.ceil().az::<u32>();
 
         // Compute the delay for the next step. See [20] in the referenced
         // paper.
         //
-        // We basically treat our trapezoidal motion profile like a triangular
-        // one here. This works because we're actually calculating a triangular
-        // profile, as far as this algorithm is concerned. We just turn it into
-        // a trapezoidal profile further below, by clamping the delay value
-        // before returning it, basically cutting off the top.
-        let delay_next = if self.step <= self.num_steps / 2 {
+        // We don't differentiate between acceleration and plateau here, as we
+        // clamp the delay value further down anyway, which creates the plateau.
+        let delay_next = if self.steps_left > steps_to_stop {
             // Ramping up
             self.delay_prev
                 * (Num::one()
@@ -182,14 +194,13 @@ where
                     + self.target_accel * self.delay_prev * self.delay_prev)
         };
 
-        self.delay_prev = delay_next;
-        self.step += 1;
-
-        // Assure that `delay_min <= delay_next <= delay_initial`, for the
-        // actually returned delay. See the explanation following [20] in
-        // the referenced paper.
+        // Ensure that `delay_min <= delay_next <= delay_initial`. See the
+        // explanation following [20] in the referenced paper.
         let delay_next = clamp_min(delay_next, self.delay_min);
         let delay_next = clamp_max(delay_next, self.delay_initial);
+
+        self.delay_prev = delay_next;
+        self.steps_left -= 1;
 
         Some(delay_next)
     }
@@ -200,6 +211,8 @@ pub type DefaultNum = fixed::FixedU64<typenum::U32>;
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use crate::{MotionProfile as _, Trapezoidal};
 
     #[test]
@@ -277,8 +290,6 @@ mod tests {
         let target_accel = 6000.0;
         let trapezoidal = Trapezoidal::new(target_accel, 1000.0);
 
-        let mut previous_mode = None;
-
         let mut delay_prev = None;
         for (i, delay_curr) in trapezoidal.ramp(200).enumerate() {
             if let Some(accel) =
@@ -286,40 +297,16 @@ mod tests {
             {
                 println!("{}: {}, {}", i, target_accel, accel);
 
-                let current_mode = Some(Mode::from_accel(accel));
-
                 // Only check acceleration for ramp-up and ramp-down.
                 if accel != 0.0 {
-                    // It's much more accurate for the most part, but can be
-                    // quite inaccurate at the beginning and end.
-                    const ALLOWABLE_ERROR: f32 = 0.25;
-
-                    if accel.abs() > target_accel * (1.0 + ALLOWABLE_ERROR) {
-                        panic!(
-                            "Acceleration too high: {:.0} (target {:.0})",
-                            accel, target_accel
-                        );
-                    }
-                    if accel.abs() < target_accel * (1.0 - ALLOWABLE_ERROR) {
-                        if previous_mode == Some(Mode::Plateau)
-                            && current_mode == Some(Mode::RampDown)
-                        {
-                            // At the transition from plateau to ramping down,
-                            // the acceleration can be much lower than the
-                            // target for a single step, due to the way the
-                            // algorithm works.
-                            //
-                            // This is acceptable, so we let it slide here.
-                        } else {
-                            panic!(
-                                "Acceleration too low: {:.0} (target {:.0})",
-                                accel, target_accel
-                            );
-                        }
-                    }
+                    assert_abs_diff_eq!(
+                        accel.abs(),
+                        target_accel,
+                        // It's much more accurate for the most part, but can be
+                        // quite inaccurate at the beginning and end.
+                        epsilon = target_accel * 0.25,
+                    );
                 }
-
-                previous_mode = current_mode;
             }
         }
     }
@@ -329,21 +316,6 @@ mod tests {
         RampUp,
         Plateau,
         RampDown,
-    }
-
-    impl Mode {
-        fn from_accel(accel: f32) -> Self {
-            match accel {
-                accel if accel > 0.0 => Self::RampUp,
-                accel if accel == 0.0 => Self::Plateau,
-                accel if accel < 0.0 => Self::RampDown,
-
-                accel => {
-                    // Must be NaN
-                    panic!("Unexpected acceleration: {}", accel);
-                }
-            }
-        }
     }
 
     /// Computes an acceleration value from two adjacent delays
