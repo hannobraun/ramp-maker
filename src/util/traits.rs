@@ -63,6 +63,9 @@ mod impl_fixed {
             )*
         ) => {
             $(
+                // Can't use a blanket impl over `FixedSqrt`, as that would
+                // conflict with any other impl that anyone might want to
+                // provide.
                 impl<U> super::Sqrt for fixed::$num<U>
                 where
                     $(U: $sqrt_bound,)*
@@ -75,8 +78,6 @@ mod impl_fixed {
         };
     }
 
-    // Can't use a blanket impl, as that would conflict with any other impl that
-    // anyone might want to provide.
     impl_fixed!(
         FixedU8:
             Sqrt => (LeEqU8)
