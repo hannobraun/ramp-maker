@@ -16,12 +16,13 @@ std = [] # standard library support
 
 
 [dependencies]
+az         = "1.1.0"
 fixed-sqrt = "0.2.4"
 typenum    = "1.12.0"
 
 [dependencies.fixed]
 version  = "1.5.0"
-features = ["num-traits"]
+features = ["az", "num-traits"]
 
 [dependencies.libm]
 version  = "0.2.1"

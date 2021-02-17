@@ -4,9 +4,13 @@
 
 use core::ops;
 
+use az::Az as _;
 use num_traits::{clamp_max, clamp_min};
 
-use crate::{util::traits::Sqrt, MotionProfile};
+use crate::{
+    util::traits::{Ceil, Sqrt},
+    MotionProfile,
+};
 
 /// Trapezoidal motion profile
 ///
@@ -110,10 +114,14 @@ impl<Num> MotionProfile for Trapezoidal<Num>
 where
     Num: Copy
         + PartialOrd
+        + az::Cast<u32>
         + num_traits::One
+        + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
         + ops::Sub<Output = Num>
-        + ops::Mul<Output = Num>,
+        + ops::Mul<Output = Num>
+        + ops::Div<Output = Num>
+        + Ceil,
 {
     type Delay = Num;
     type Iter = Iter<Num>;
@@ -124,7 +132,6 @@ where
             delay_initial: self.delay_initial,
             target_accel: self.target_accel,
 
-            step: 1,
             num_steps,
 
             delay_prev: self.delay_initial,
@@ -140,7 +147,6 @@ pub struct Iter<Num> {
     delay_initial: Num,
     target_accel: Num,
 
-    step: u32,
     num_steps: u32,
 
     delay_prev: Num,
@@ -150,27 +156,33 @@ impl<Num> Iterator for Iter<Num>
 where
     Num: Copy
         + PartialOrd
+        + az::Cast<u32>
         + num_traits::One
+        + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
         + ops::Sub<Output = Num>
-        + ops::Mul<Output = Num>,
+        + ops::Mul<Output = Num>
+        + ops::Div<Output = Num>
+        + Ceil,
 {
     type Item = Num;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.step > self.num_steps {
+        if self.num_steps == 0 {
             return None;
         }
+
+        let velocity = self.delay_prev.inv();
+        let two = Num::one() + Num::one();
+        let steps_to_stop = (velocity * velocity) / (two * self.target_accel);
+        let steps_to_stop = steps_to_stop.ceil().az::<u32>();
 
         // Compute the delay for the next step. See [20] in the referenced
         // paper.
         //
-        // We basically treat our trapezoidal motion profile like a triangular
-        // one here. This works because we're actually calculating a triangular
-        // profile, as far as this algorithm is concerned. We just turn it into
-        // a trapezoidal profile further below, by clamping the delay value
-        // before returning it, basically cutting off the top.
-        let delay_next = if self.step <= self.num_steps / 2 {
+        // We don't differentiate between acceleration and plateau here, as we
+        // clamp the delay value further down anyway, which creates the plateau.
+        let delay_next = if self.num_steps > steps_to_stop {
             // Ramping up
             self.delay_prev
                 * (Num::one()
@@ -182,14 +194,13 @@ where
                     + self.target_accel * self.delay_prev * self.delay_prev)
         };
 
-        self.delay_prev = delay_next;
-        self.step += 1;
-
-        // Assure that `delay_min <= delay_next <= delay_initial`, for the
-        // actually returned delay. See the explanation following [20] in
-        // the referenced paper.
+        // Ensure that `delay_min <= delay_next <= delay_initial`. See the
+        // explanation following [20] in the referenced paper.
         let delay_next = clamp_min(delay_next, self.delay_min);
         let delay_next = clamp_max(delay_next, self.delay_initial);
+
+        self.delay_prev = delay_next;
+        self.num_steps -= 1;
 
         Some(delay_next)
     }
