@@ -18,6 +18,15 @@ pub trait Sqrt {
     fn sqrt(self) -> Self;
 }
 
+/// Defines an interface to the `ceil` operator for rounding up
+pub trait Ceil {
+    /// Round up to the next largest integer
+    ///
+    /// This method can't be called `ceil`, as that would conflict with the
+    /// `ceil` methods of `f32` and `f64`.
+    fn ceil(self) -> Self;
+}
+
 #[cfg(any(test, feature = "std"))]
 mod impl_using_std {
     impl super::Sqrt for f32 {
@@ -26,9 +35,21 @@ mod impl_using_std {
         }
     }
 
+    impl super::Ceil for f32 {
+        fn ceil(self) -> Self {
+            f32::ceil(self)
+        }
+    }
+
     impl super::Sqrt for f64 {
         fn sqrt(self) -> Self {
             f64::sqrt(self)
+        }
+    }
+
+    impl super::Ceil for f64 {
+        fn ceil(self) -> Self {
+            f64::ceil(self)
         }
     }
 }
@@ -41,9 +62,21 @@ mod impl_using_libm {
         }
     }
 
+    impl super::Ceil for f32 {
+        fn ceil(self) -> Self {
+            libm::ceilf(self)
+        }
+    }
+
     impl super::Sqrt for f64 {
         fn sqrt(self) -> Self {
             libm::sqrt(self)
+        }
+    }
+
+    impl super::Ceil for f64 {
+        fn ceil(self) -> Self {
+            libm::ceil(self)
         }
     }
 }
@@ -60,6 +93,7 @@ mod impl_fixed {
             (
                 $num:ident:
                     Sqrt => ($($sqrt_bound:ident),*)
+                    Ceil => ($($ceil_bound:ident),*)
             )*
         ) => {
             $(
@@ -74,6 +108,15 @@ mod impl_fixed {
                         <Self as FixedSqrt>::sqrt(self)
                     }
                 }
+
+                impl<U> super::Ceil for fixed::$num<U>
+                where
+                    $(U: $ceil_bound,)*
+                {
+                    fn ceil(self) -> Self {
+                        fixed::$num::ceil(self)
+                    }
+                }
             )*
         };
     }
@@ -81,23 +124,33 @@ mod impl_fixed {
     impl_fixed!(
         FixedU8:
             Sqrt => (LeEqU8)
+            Ceil => (LeEqU8)
         FixedU16:
             Sqrt => (LeEqU16)
+            Ceil => (LeEqU16)
         FixedU32:
             Sqrt => (LeEqU32)
+            Ceil => (LeEqU32)
         FixedU64:
             Sqrt => (LeEqU64)
+            Ceil => (LeEqU64)
         FixedU128:
             Sqrt => (LeEqU128, IsEven)
+            Ceil => (LeEqU128)
         FixedI8:
             Sqrt => (LtU8)
+            Ceil => (LeEqU8)
         FixedI16:
             Sqrt => (LtU16)
+            Ceil => (LeEqU16)
         FixedI32:
             Sqrt => (LtU32)
+            Ceil => (LeEqU32)
         FixedI64:
             Sqrt => (LtU64)
+            Ceil => (LeEqU64)
         FixedI128:
             Sqrt => (LtU128)
+            Ceil => (LeEqU128)
     );
 }
