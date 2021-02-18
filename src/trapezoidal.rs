@@ -241,6 +241,28 @@ mod tests {
     }
 
     #[test]
+    fn trapezoidal_should_come_to_stop_with_last_step() {
+        let trapezoidal = Trapezoidal::new(6000.0, 1000.0);
+
+        let mut last_delay = None;
+        for delay in trapezoidal.ramp(200) {
+            println!("Velocity: {}", 1.0 / delay);
+            last_delay = Some(delay);
+        }
+
+        let last_velocity = 1.0 / last_delay.unwrap();
+
+        println!("Velocity on last step: {}", last_velocity);
+
+        // No idea if this value is appropriate, but it somewhat matches what
+        // the algorithm gives us. Even if that's not okay, at the very least
+        // this test documents the potential shortcoming and protects against
+        // further regressions.
+        const MIN_VELOCITY: f32 = 200.0;
+        assert!(last_velocity <= MIN_VELOCITY);
+    }
+
+    #[test]
     fn trapezoidal_should_generate_actual_trapezoidal_ramp() {
         let trapezoidal = Trapezoidal::new(6000.0, 1000.0);
 
