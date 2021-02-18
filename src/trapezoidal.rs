@@ -224,11 +224,8 @@ mod tests {
     use crate::{MotionProfile as _, Trapezoidal};
 
     #[test]
-    fn trapezoidal_should_produce_correct_number_of_steps() {
-        let trapezoidal = Trapezoidal::new(6000.0, 1000.0);
-
-        let num_steps = 200;
-        assert_eq!(trapezoidal.ramp(num_steps).count() as u32, num_steps);
+    fn trapezoidal_should_pass_motion_profile_tests() {
+        crate::util::testing::test::<Trapezoidal<f32>>();
     }
 
     #[test]

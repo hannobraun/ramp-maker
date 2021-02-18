@@ -126,11 +126,8 @@ mod tests {
     use crate::{Flat, MotionProfile as _};
 
     #[test]
-    fn flat_should_produce_correct_number_of_steps() {
-        let flat = Flat::new(2.0); // steps per second
-
-        let num_steps = 200;
-        assert_eq!(flat.ramp(num_steps).count() as u32, num_steps);
+    fn flat_should_pass_motion_profile_tests() {
+        crate::util::testing::test::<Flat<f32>>();
     }
 
     #[test]
