@@ -247,14 +247,15 @@ mod tests {
     fn trapezoidal_should_come_to_stop_with_last_step() {
         let trapezoidal = Trapezoidal::new(6000.0, 1000.0);
 
-        let mut last_delay = None;
+        let mut last_velocity = None;
+
         for delay in trapezoidal.ramp(200) {
-            println!("Velocity: {}", 1.0 / delay);
-            last_delay = Some(delay);
+            let velocity = 1.0 / delay;
+            println!("Velocity: {}", velocity);
+            last_velocity = Some(velocity);
         }
 
-        let last_velocity = 1.0 / last_delay.unwrap();
-
+        let last_velocity = last_velocity.unwrap();
         println!("Velocity on last step: {}", last_velocity);
 
         // No idea if this value is appropriate, but it somewhat matches what
