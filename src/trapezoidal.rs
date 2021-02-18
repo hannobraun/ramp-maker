@@ -110,6 +110,14 @@ where
     }
 }
 
+// Needed for the `MotionProfile` test suite in `crate::util::testing`.
+#[cfg(test)]
+impl Default for Trapezoidal<f32> {
+    fn default() -> Self {
+        Self::new(6000.0, 1000.0)
+    }
+}
+
 impl<Num> MotionProfile for Trapezoidal<Num>
 where
     Num: Copy

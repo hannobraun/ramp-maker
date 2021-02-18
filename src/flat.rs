@@ -63,6 +63,14 @@ where
     }
 }
 
+// Needed for the `MotionProfile` test suite in `crate::util::testing`.
+#[cfg(test)]
+impl Default for Flat<f32> {
+    fn default() -> Self {
+        Self::new(1000.0)
+    }
+}
+
 impl<Num> MotionProfile for Flat<Num>
 where
     Num: Copy,
