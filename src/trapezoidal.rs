@@ -301,7 +301,7 @@ mod tests {
                     Mode::RampDown => {
                         ramped_down = true;
 
-                        assert!(accel < 0.0);
+                        assert!(accel <= 0.0);
                     }
                 }
             }
