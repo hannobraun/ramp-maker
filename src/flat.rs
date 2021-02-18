@@ -64,7 +64,7 @@ impl Default for Flat<f32> {
 
 impl<Num> MotionProfile for Flat<Num>
 where
-    Num: Copy + num_traits::Inv<Output = Num>,
+    Num: Copy + num_traits::Zero + num_traits::Inv<Output = Num>,
 {
     type Velocity = Num;
     type Delay = Num;
@@ -74,7 +74,12 @@ where
         max_velocity: Self::Velocity,
         num_steps: u32,
     ) {
-        self.delay = Some(max_velocity.inv());
+        self.delay = if max_velocity.is_zero() {
+            None
+        } else {
+            Some(max_velocity.inv())
+        };
+
         self.num_steps = num_steps;
     }
 

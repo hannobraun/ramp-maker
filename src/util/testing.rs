@@ -28,6 +28,7 @@ where
 {
     position_mode_must_produce_correct_number_of_steps(Profile::default());
     position_mode_must_respect_maximum_velocity(Profile::default());
+    position_mode_must_not_panic_because_of_zero_velocity(Profile::default());
 }
 
 /// A motion in position mode must produce the correct number of steps
@@ -58,4 +59,12 @@ pub fn position_mode_must_respect_maximum_velocity(
         println!("delay: {}, min_delay: {}", delay, min_delay);
         assert!(delay >= min_delay);
     }
+}
+
+/// Entering position mode with a max velocity of zero must not cause a panic
+pub fn position_mode_must_not_panic_because_of_zero_velocity(
+    mut profile: impl MotionProfile,
+) {
+    profile.enter_position_mode(0.0, 200);
+    assert_eq!(profile.next_delay(), None);
 }

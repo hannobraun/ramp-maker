@@ -121,6 +121,7 @@ where
     Num: Copy
         + PartialOrd
         + az::Cast<u32>
+        + num_traits::Zero
         + num_traits::One
         + num_traits::Inv<Output = Num>
         + ops::Add<Output = Num>
@@ -138,7 +139,11 @@ where
         num_steps: u32,
     ) {
         // Based on equation [7] in the reference paper.
-        self.delay_min = Some(max_velocity.inv());
+        self.delay_min = if max_velocity.is_zero() {
+            None
+        } else {
+            Some(max_velocity.inv())
+        };
 
         self.steps_left = num_steps;
     }
