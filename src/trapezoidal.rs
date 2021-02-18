@@ -26,7 +26,6 @@ use crate::{
 ///   the frequency variable `F` is ignored.
 /// - The initial velocity `v0` is assumed to be zero, making this
 ///   implementation suitable only for starting and stopping at a stand-still.
-/// - None of the optional enhancements are implemented.
 ///
 /// Create an instance of this struct using [`Trapezoidal::new`], then use the
 /// API defined by [`MotionProfile`] (which this struct implements) to generate
@@ -180,26 +179,30 @@ where
             return None;
         }
 
-        let velocity = self.delay_prev.inv();
+        // Compute some basic numbers we're going to need for the following
+        // calculations. All of this is statically known, so let's hope it
+        // optimizes out.
         let two = Num::one() + Num::one();
+        let three = two + Num::one();
+        let one_five = three / two;
+
+        let velocity = self.delay_prev.inv();
         let steps_to_stop = (velocity * velocity) / (two * self.target_accel);
         let steps_to_stop = steps_to_stop.ceil().az::<u32>();
 
-        // Compute the delay for the next step. See [20] in the referenced
+        // Compute the delay for the next step. See [22] in the referenced
         // paper.
         //
         // We don't differentiate between acceleration and plateau here, as we
         // clamp the delay value further down anyway, which creates the plateau.
+        let q = self.target_accel * self.delay_prev * self.delay_prev;
+        let addend = one_five * q * q;
         let delay_next = if self.steps_left > steps_to_stop {
             // Ramping up
-            self.delay_prev
-                * (Num::one()
-                    - self.target_accel * self.delay_prev * self.delay_prev)
+            self.delay_prev * (Num::one() - q + addend)
         } else {
             // Ramping down
-            self.delay_prev
-                * (Num::one()
-                    + self.target_accel * self.delay_prev * self.delay_prev)
+            self.delay_prev * (Num::one() + q + addend)
         };
 
         // Ensure that `delay_min <= delay_next <= delay_initial`. See the
@@ -301,7 +304,7 @@ mod tests {
                     Mode::RampDown => {
                         ramped_down = true;
 
-                        assert!(accel < 0.0);
+                        assert!(accel <= 0.0);
                     }
                 }
             }
@@ -317,21 +320,29 @@ mod tests {
         let target_accel = 6000.0;
         let trapezoidal = Trapezoidal::new(target_accel, 1000.0);
 
+        // Make the ramp so short that it becomes triangular. This makes testing
+        // a bit easier, as we don't have to deal with the plateau.
+        let num_steps = 100;
+
         let mut delay_prev = None;
-        for (i, delay_curr) in trapezoidal.ramp(200).enumerate() {
+        for (i, delay_curr) in trapezoidal.ramp(num_steps).enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
                 println!("{}: {}, {}", i, target_accel, accel);
 
-                // Only check acceleration for ramp-up and ramp-down.
-                if accel != 0.0 {
+                let around_start = i < 5;
+                let around_end = i as u32 > num_steps - 5;
+
+                // There are some inaccuracies at various points, which we
+                // accept. The rest of the ramp is much more accurate.
+                if !around_start && !around_end {
                     assert_abs_diff_eq!(
                         accel.abs(),
                         target_accel,
                         // It's much more accurate for the most part, but can be
                         // quite inaccurate at the beginning and end.
-                        epsilon = target_accel * 0.25,
+                        epsilon = target_accel * 0.05,
                     );
                 }
             }
