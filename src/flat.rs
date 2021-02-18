@@ -63,6 +63,14 @@ where
     }
 }
 
+// Needed for the `MotionProfile` test suite in `crate::util::testing`.
+#[cfg(test)]
+impl Default for Flat<f32> {
+    fn default() -> Self {
+        Self::new(1000.0)
+    }
+}
+
 impl<Num> MotionProfile for Flat<Num>
 where
     Num: Copy,
@@ -118,11 +126,8 @@ mod tests {
     use crate::{Flat, MotionProfile as _};
 
     #[test]
-    fn flat_should_produce_correct_number_of_steps() {
-        let flat = Flat::new(2.0); // steps per second
-
-        let num_steps = 200;
-        assert_eq!(flat.ramp(num_steps).count() as u32, num_steps);
+    fn flat_should_pass_motion_profile_tests() {
+        crate::util::testing::test::<Flat<f32>>();
     }
 
     #[test]
