@@ -317,21 +317,29 @@ mod tests {
         let target_accel = 6000.0;
         let trapezoidal = Trapezoidal::new(target_accel, 1000.0);
 
+        // Make the ramp so short that it becomes triangular. This makes testing
+        // a bit easier, as we don't have to deal with the plateau.
+        let num_steps = 100;
+
         let mut delay_prev = None;
-        for (i, delay_curr) in trapezoidal.ramp(200).enumerate() {
+        for (i, delay_curr) in trapezoidal.ramp(num_steps).enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
                 println!("{}: {}, {}", i, target_accel, accel);
 
-                // Only check acceleration for ramp-up and ramp-down.
-                if accel != 0.0 {
+                let around_start = i < 5;
+                let around_end = i as u32 > num_steps - 5;
+
+                // There are some inaccuracies at various points, which we
+                // accept. The rest of the ramp is much more accurate.
+                if !around_start && !around_end {
                     assert_abs_diff_eq!(
                         accel.abs(),
                         target_accel,
                         // It's much more accurate for the most part, but can be
                         // quite inaccurate at the beginning and end.
-                        epsilon = target_accel * 0.25,
+                        epsilon = target_accel * 0.2,
                     );
                 }
             }
