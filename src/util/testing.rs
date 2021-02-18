@@ -10,12 +10,15 @@
 
 #![cfg(test)]
 
-use crate::MotionProfile;
+/// Alias for [`crate::MotionProfile`] with some extras, used by the tests here
+pub trait MotionProfile: crate::MotionProfile + Default {}
+
+impl<T> MotionProfile for T where T: crate::MotionProfile + Default {}
 
 /// Run full test suite on the provided [`MotionProfile`] implementation
 pub fn test<Profile>()
 where
-    Profile: MotionProfile + Default,
+    Profile: MotionProfile,
 {
     position_mode_must_produce_correct_number_of_steps(Profile::default());
 }
