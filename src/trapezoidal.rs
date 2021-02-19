@@ -262,7 +262,7 @@ mod tests {
         // algorithm produces. Even if that's not okay, at the very least this
         // test documents the potential shortcoming and protects against further
         // regressions.
-        const MIN_VELOCITY: f32 = 200.0;
+        const MIN_VELOCITY: f32 = 110.0;
         assert!(last_velocity <= MIN_VELOCITY);
     }
 
