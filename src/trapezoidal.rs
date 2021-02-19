@@ -178,7 +178,7 @@ where
         let delay_next = clamp_max(delay_next, self.delay_initial);
 
         self.delay_prev = delay_next;
-        self.steps_left -= 1;
+        self.steps_left = self.steps_left.saturating_sub(1);
 
         Some(delay_next)
     }
@@ -213,8 +213,9 @@ where
         };
 
         let no_steps_left = profile.steps_left == 0;
+        let not_moving = profile.delay_prev >= profile.delay_initial;
 
-        if no_steps_left {
+        if no_steps_left && not_moving {
             return Self::Idle;
         }
 
@@ -247,7 +248,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_abs_diff_eq;
+    use approx::{assert_abs_diff_eq, AbsDiffEq as _};
 
     use crate::{MotionProfile as _, Trapezoidal};
 
@@ -336,9 +337,19 @@ mod tests {
     fn trapezoidal_should_come_to_stop_with_last_step() {
         let mut trapezoidal = Trapezoidal::new(6000.0);
 
+        let max_velocity = 1000.0;
+
+        // Accelerate to maximum velocity.
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        for velocity in trapezoidal.velocities() {
+            if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+        }
+
         let mut last_velocity = None;
 
-        trapezoidal.enter_position_mode(1000.0, 200);
+        trapezoidal.enter_position_mode(max_velocity, 0);
         for velocity in trapezoidal.velocities() {
             println!("Velocity: {}", velocity);
             last_velocity = Some(velocity);
