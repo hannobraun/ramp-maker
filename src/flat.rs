@@ -42,79 +42,55 @@ use crate::MotionProfile;
 /// hardware support for floating point numbers is available. You can override
 /// it with other types from the `fixed` crate, or `f32`/`f64`, for example.
 pub struct Flat<Num = DefaultNum> {
-    delay: Num,
+    delay: Option<Num>,
+    num_steps: u32,
 }
 
-impl<Num> Flat<Num>
-where
-    Num: num_traits::Inv<Output = Num>,
-{
-    /// Create a `Flat` instance by passing a target velocity
-    ///
-    /// The target velocity is specified in steps per unit of time (see
-    /// top-level documentation of this struct) and must not be zero.
-    ///
-    /// # Panics
-    ///
-    /// Panics, if `target_velocity` is zero.
-    pub fn new(target_velocity: Num) -> Self {
-        let delay = target_velocity.inv();
-        Self { delay }
+impl<Num> Flat<Num> {
+    /// Create a new instance of `Flat`
+    pub fn new() -> Self {
+        Self {
+            delay: None,
+            num_steps: 0,
+        }
     }
 }
 
-// Needed for the `MotionProfile` test suite in `crate::util::testing`.
-#[cfg(test)]
 impl Default for Flat<f32> {
     fn default() -> Self {
-        Self::new(1000.0)
+        Self::new()
     }
 }
 
 impl<Num> MotionProfile for Flat<Num>
 where
-    Num: Copy,
+    Num: Copy + num_traits::Zero + num_traits::Inv<Output = Num>,
 {
+    type Velocity = Num;
     type Delay = Num;
-    type Iter = Iter<Num>;
 
-    /// Generate the acceleration ramp
-    ///
-    /// The `num_steps` argument defines the number of steps to take. Returns an
-    /// iterator that yields one delay value per step, and `None` after that.
-    ///
-    /// Since this is the flat motion profile, all delay values yielded will be
-    /// the same (as defined by the target velocity passed to the constructor).
-    fn ramp(&self, num_steps: u32) -> Self::Iter {
-        Iter {
-            delay: self.delay,
-            num_steps,
-        }
+    fn enter_position_mode(
+        &mut self,
+        max_velocity: Self::Velocity,
+        num_steps: u32,
+    ) {
+        self.delay = if max_velocity.is_zero() {
+            None
+        } else {
+            Some(max_velocity.inv())
+        };
+
+        self.num_steps = num_steps;
     }
-}
 
-/// The iterator returned by [`Flat`]
-///
-/// See [`Flat`]'s [`MotionProfile::ramp`] implementation
-pub struct Iter<Num> {
-    delay: Num,
-    num_steps: u32,
-}
-
-impl<Num> Iterator for Iter<Num>
-where
-    Num: Copy,
-{
-    type Item = Num;
-
-    fn next(&mut self) -> Option<Self::Item> {
+    fn next_delay(&mut self) -> Option<Self::Delay> {
         if self.num_steps == 0 {
             return None;
         }
 
         self.num_steps -= 1;
 
-        Some(self.delay)
+        self.delay
     }
 }
 
@@ -132,9 +108,10 @@ mod tests {
 
     #[test]
     fn flat_should_produce_constant_velocity() {
-        let flat = Flat::new(2.0); // steps per second
+        let mut flat = Flat::new();
 
-        for delay in flat.ramp(200) {
+        flat.enter_position_mode(2.0, 200);
+        for delay in flat.iter() {
             assert_eq!(delay, 0.5);
         }
     }

@@ -37,28 +37,68 @@ pub use self::{flat::Flat, trapezoidal::Trapezoidal};
 /// Implemented by all motion profiles in this library. Can be used to
 /// write abstract code that doesn't care about the specific motion profile
 /// used.
-pub trait MotionProfile {
+pub trait MotionProfile: Sized {
+    /// The type used for representing velocities
+    type Velocity;
+
     /// The type used for representing delay values
     type Delay;
 
-    /// The iterator returned by [`MotionProfile::ramp`]
-    type Iter: Iterator<Item = Self::Delay>;
+    /// Enter position mode
+    ///
+    /// In position mode, the motion profile will attempt to move for a specific
+    /// number of steps and come to a stand-still at the target step.
+    ///
+    /// The number of steps given here is always relative to the current
+    /// position, as implementations of this trait are not expected to keep
+    /// track of an absolute position.
+    fn enter_position_mode(
+        &mut self,
+        max_velocity: Self::Velocity,
+        num_steps: u32,
+    );
 
-    /// Generate the acceleration ramp
+    /// Return the next step delay
     ///
-    /// `num_steps` defines the number of steps in the acceleration ramp. The
-    /// returned iterator yields one value per step, each value defining a delay
-    /// between two steps.
+    /// Produces the delay for the next step. The unit of this delay is
+    /// implementation-defined. `None` is returned, if no more steps need to be
+    /// taken. This happens when reaching the target step in position mode, or
+    /// if velocity is set to zero in either position or velocity mode.
     ///
-    /// Note that for n steps, only n-1 delay values are actually needed. The
-    /// additional delay value will lead to an unnecessary delay before the
-    /// first or after the last step. This was done to make accidental misuse of
-    /// this method less likely, as the most straight-forward use of this method
-    /// is to iterate over all values and make one step per value. If the
-    /// additional delay value is relevant for your application, you can just
-    /// ignore it.
+    /// Please note that motion profiles yield one value per step, even though
+    /// only n-1 delay values are needed for n steps. The additional delay value
+    /// will lead to an unnecessary delay before the first or after the last
+    /// step. This was done to make accidental misuse of this trait less likely,
+    /// as the most straight-forward use is to make one step per delay value in
+    /// a loop.
     ///
-    /// All other details of the acceleration ramp, as well as the unit of the
-    /// yielded delay values, are implementation-defined.
-    fn ramp(&self, num_steps: u32) -> Self::Iter;
+    /// All other details of the motion profile are implementation-defined.
+    ///
+    /// If you need an iterator that produces the step delays, you can get one
+    /// by calling [`MotionProfile::iter`], which internally calls this method.
+    fn next_delay(&mut self) -> Option<Self::Delay>;
+
+    /// Return an iterator over delay values
+    ///
+    /// This is a convenience method that returns an iterator which internally
+    /// just calls [`MotionProfile::next_delay`].
+    fn iter(&mut self) -> DelayIter<Self> {
+        DelayIter(self)
+    }
+}
+
+/// An iterator over delay values
+///
+/// Can be created by calling [`MotionProfile::iter`].
+pub struct DelayIter<'r, T>(pub &'r mut T);
+
+impl<'r, T> Iterator for DelayIter<'r, T>
+where
+    T: MotionProfile,
+{
+    type Item = T::Delay;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next_delay()
+    }
 }
