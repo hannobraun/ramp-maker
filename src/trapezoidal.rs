@@ -237,43 +237,38 @@ mod tests {
         let mut trapezoidal = Trapezoidal::new(6000.0);
 
         let mut mode = Mode::RampUp;
-        let mut delay_prev = None;
 
         let mut ramped_up = false;
         let mut plateaued = false;
         let mut ramped_down = false;
 
         trapezoidal.enter_position_mode(1000.0, 200);
-        for (i, delay_curr) in trapezoidal.delays().enumerate() {
-            if let Some(accel) =
-                acceleration_from_delays(&mut delay_prev, delay_curr)
-            {
-                println!("{}: {}, {:?}", i, accel, mode);
+        for (i, accel) in trapezoidal.accelerations().enumerate() {
+            println!("{}: {}, {:?}", i, accel, mode);
 
-                match mode {
-                    Mode::RampUp => {
-                        ramped_up = true;
+            match mode {
+                Mode::RampUp => {
+                    ramped_up = true;
 
-                        if i > 0 && accel == 0.0 {
-                            mode = Mode::Plateau;
-                        } else {
-                            assert!(accel > 0.0);
-                        }
+                    if i > 0 && accel == 0.0 {
+                        mode = Mode::Plateau;
+                    } else {
+                        assert!(accel > 0.0);
                     }
-                    Mode::Plateau => {
-                        plateaued = true;
+                }
+                Mode::Plateau => {
+                    plateaued = true;
 
-                        if accel < 0.0 {
-                            mode = Mode::RampDown;
-                        } else {
-                            assert_eq!(accel, 0.0);
-                        }
+                    if accel < 0.0 {
+                        mode = Mode::RampDown;
+                    } else {
+                        assert_eq!(accel, 0.0);
                     }
-                    Mode::RampDown => {
-                        ramped_down = true;
+                }
+                Mode::RampDown => {
+                    ramped_down = true;
 
-                        assert!(accel <= 0.0);
-                    }
+                    assert!(accel <= 0.0);
                 }
             }
         }
@@ -293,28 +288,22 @@ mod tests {
         let num_steps = 100;
         trapezoidal.enter_position_mode(1000.0, num_steps);
 
-        let mut delay_prev = None;
+        for (i, accel) in trapezoidal.accelerations::<f32>().enumerate() {
+            println!("{}: {}, {}", i, target_accel, accel);
 
-        for (i, delay_curr) in trapezoidal.delays().enumerate() {
-            if let Some(accel) =
-                acceleration_from_delays(&mut delay_prev, delay_curr)
-            {
-                println!("{}: {}, {}", i, target_accel, accel);
+            let around_start = i < 5;
+            let around_end = i as u32 > num_steps - 5;
 
-                let around_start = i < 5;
-                let around_end = i as u32 > num_steps - 5;
-
-                // There are some inaccuracies at various points, which we
-                // accept. The rest of the ramp is much more accurate.
-                if !around_start && !around_end {
-                    assert_abs_diff_eq!(
-                        accel.abs(),
-                        target_accel,
-                        // It's much more accurate for the most part, but can be
-                        // quite inaccurate at the beginning and end.
-                        epsilon = target_accel * 0.05,
-                    );
-                }
+            // There are some inaccuracies at various points, which we
+            // accept. The rest of the ramp is much more accurate.
+            if !around_start && !around_end {
+                assert_abs_diff_eq!(
+                    accel.abs(),
+                    target_accel,
+                    // It's much more accurate for the most part, but can be
+                    // quite inaccurate at the beginning and end.
+                    epsilon = target_accel * 0.05,
+                );
             }
         }
     }
@@ -324,36 +313,5 @@ mod tests {
         RampUp,
         Plateau,
         RampDown,
-    }
-
-    /// Computes an acceleration value from two adjacent delays
-    fn acceleration_from_delays(
-        delay_prev: &mut Option<f32>,
-        delay_curr: f32,
-    ) -> Option<f32> {
-        let mut accel = None;
-
-        if let &mut Some(delay_prev) = delay_prev {
-            let velocity_prev = 1.0 / delay_prev;
-            let velocity_curr = 1.0 / delay_curr;
-
-            let velocity_diff: f32 = velocity_curr - velocity_prev;
-
-            // - Assumes the velocity defined by a given delay to be reached at
-            //   the mid-point between the two steps that the delay separates.
-            // - Because of this, the interval between the time of the velocity
-            //   being reached and the time of a neighboring step being
-            //   initiated, is half the delay (the delay measures the interval
-            //   between two steps).
-            // - Therefore, the formula below computes the difference between
-            //   the points in time at which the two velocities are reached.
-            let time_diff = delay_prev / 2.0 + delay_curr / 2.0;
-
-            accel = Some(velocity_diff / time_diff);
-        }
-
-        *delay_prev = Some(delay_curr);
-
-        accel
     }
 }
