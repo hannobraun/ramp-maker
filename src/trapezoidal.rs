@@ -243,21 +243,6 @@ mod tests {
     }
 
     #[test]
-    fn trapezoidal_should_respect_maximum_velocity() {
-        let mut trapezoidal = Trapezoidal::new(6000.0);
-
-        let max_velocity = 1000.0; // steps per second
-        trapezoidal.enter_position_mode(max_velocity, 200);
-
-        let min_delay = 0.001; // seconds
-
-        for delay in trapezoidal.ramp() {
-            println!("delay: {}, min_delay: {}", delay, min_delay);
-            assert!(delay >= min_delay);
-        }
-    }
-
-    #[test]
     fn trapezoidal_should_come_to_stop_with_last_step() {
         let mut trapezoidal = Trapezoidal::new(6000.0);
 
