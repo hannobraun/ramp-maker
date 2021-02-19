@@ -75,21 +75,22 @@ pub trait MotionProfile: Sized {
     /// All other details of the motion profile are implementation-defined.
     ///
     /// If you need an iterator that produces the step delays, you can get one
-    /// by calling [`MotionProfile::iter`], which internally calls this method.
+    /// by calling [`MotionProfile::delays`], which internally calls this
+    /// method.
     fn next_delay(&mut self) -> Option<Self::Delay>;
 
     /// Return an iterator over delay values
     ///
     /// This is a convenience method that returns an iterator which internally
     /// just calls [`MotionProfile::next_delay`].
-    fn iter(&mut self) -> DelayIter<Self> {
+    fn delays(&mut self) -> DelayIter<Self> {
         DelayIter(self)
     }
 }
 
 /// An iterator over delay values
 ///
-/// Can be created by calling [`MotionProfile::iter`].
+/// Can be created by calling [`MotionProfile::delays`].
 pub struct DelayIter<'r, T>(pub &'r mut T);
 
 impl<'r, T> Iterator for DelayIter<'r, T>

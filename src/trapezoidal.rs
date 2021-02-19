@@ -215,7 +215,7 @@ mod tests {
         let mut last_velocity = None;
 
         trapezoidal.enter_position_mode(1000.0, 200);
-        for delay in trapezoidal.iter() {
+        for delay in trapezoidal.delays() {
             let velocity = 1.0 / delay;
             println!("Velocity: {}", velocity);
             last_velocity = Some(velocity);
@@ -244,7 +244,7 @@ mod tests {
         let mut ramped_down = false;
 
         trapezoidal.enter_position_mode(1000.0, 200);
-        for (i, delay_curr) in trapezoidal.iter().enumerate() {
+        for (i, delay_curr) in trapezoidal.delays().enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {
@@ -295,7 +295,7 @@ mod tests {
 
         let mut delay_prev = None;
 
-        for (i, delay_curr) in trapezoidal.iter().enumerate() {
+        for (i, delay_curr) in trapezoidal.delays().enumerate() {
             if let Some(accel) =
                 acceleration_from_delays(&mut delay_prev, delay_curr)
             {

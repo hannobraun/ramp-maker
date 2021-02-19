@@ -111,7 +111,7 @@ mod tests {
         let mut flat = Flat::new();
 
         flat.enter_position_mode(2.0, 200);
-        for delay in flat.iter() {
+        for delay in flat.delays() {
             assert_eq!(delay, 0.5);
         }
     }
