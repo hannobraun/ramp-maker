@@ -258,10 +258,10 @@ mod tests {
         let last_velocity = last_velocity.unwrap();
         println!("Velocity on last step: {}", last_velocity);
 
-        // No idea if this value is appropriate, but it somewhat matches what
-        // the algorithm gives us. Even if that's not okay, at the very least
-        // this test documents the potential shortcoming and protects against
-        // further regressions.
+        // No idea if this value is appropriate, but it matches what the
+        // algorithm produces. Even if that's not okay, at the very least this
+        // test documents the potential shortcoming and protects against further
+        // regressions.
         const MIN_VELOCITY: f32 = 200.0;
         assert!(last_velocity <= MIN_VELOCITY);
     }
