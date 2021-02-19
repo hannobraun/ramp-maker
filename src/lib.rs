@@ -27,6 +27,7 @@
 #![deny(missing_docs, broken_intra_doc_links)]
 
 pub mod flat;
+pub mod iter;
 pub mod trapezoidal;
 pub mod util;
 
@@ -75,30 +76,37 @@ pub trait MotionProfile: Sized {
     /// All other details of the motion profile are implementation-defined.
     ///
     /// If you need an iterator that produces the step delays, you can get one
-    /// by calling [`MotionProfile::iter`], which internally calls this method.
+    /// by calling [`MotionProfile::delays`], which internally calls this
+    /// method.
     fn next_delay(&mut self) -> Option<Self::Delay>;
 
-    /// Return an iterator over delay values
+    /// Return an iterator over delay values of each step
     ///
     /// This is a convenience method that returns an iterator which internally
     /// just calls [`MotionProfile::next_delay`].
-    fn iter(&mut self) -> DelayIter<Self> {
-        DelayIter(self)
+    fn delays(&mut self) -> iter::Delays<Self> {
+        iter::Delays(self)
     }
-}
 
-/// An iterator over delay values
-///
-/// Can be created by calling [`MotionProfile::iter`].
-pub struct DelayIter<'r, T>(pub &'r mut T);
+    /// Return an iterator over velocity values of each step
+    ///
+    /// This is a convenience method that returns an iterator which internally
+    /// calls [`MotionProfile::next_delay`] and converts the delay to a
+    /// velocity.
+    ///
+    /// This is mainly useful for testing and debugging.
+    fn velocities(&mut self) -> iter::Velocities<Self> {
+        iter::Velocities(self)
+    }
 
-impl<'r, T> Iterator for DelayIter<'r, T>
-where
-    T: MotionProfile,
-{
-    type Item = T::Delay;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next_delay()
+    /// Return an iterator over the acceleration values between steps
+    ///
+    /// This is a convenience method that returns an iterator which internally
+    /// calls [`MotionProfile::next_delay`] and computes the acceleration from
+    /// each pair of delay values.
+    ///
+    /// This is mainly useful for testing and debugging.
+    fn accelerations<Accel>(&mut self) -> iter::Accelerations<Self, Accel> {
+        iter::Accelerations::new(self)
     }
 }
