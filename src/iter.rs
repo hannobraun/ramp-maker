@@ -5,13 +5,13 @@ use crate::MotionProfile;
 /// An iterator over delay values
 ///
 /// Can be created by calling [`MotionProfile::delays`].
-pub struct Delays<'r, T>(pub &'r mut T);
+pub struct Delays<'r, Profile>(pub &'r mut Profile);
 
-impl<'r, T> Iterator for Delays<'r, T>
+impl<'r, Profile> Iterator for Delays<'r, Profile>
 where
-    T: MotionProfile,
+    Profile: MotionProfile,
 {
-    type Item = T::Delay;
+    type Item = Profile::Delay;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next_delay()
