@@ -5,9 +5,9 @@ use crate::MotionProfile;
 /// An iterator over delay values
 ///
 /// Can be created by calling [`MotionProfile::delays`].
-pub struct DelayIter<'r, T>(pub &'r mut T);
+pub struct Delays<'r, T>(pub &'r mut T);
 
-impl<'r, T> Iterator for DelayIter<'r, T>
+impl<'r, T> Iterator for Delays<'r, T>
 where
     T: MotionProfile,
 {

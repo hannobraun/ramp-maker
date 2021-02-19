@@ -84,7 +84,7 @@ pub trait MotionProfile: Sized {
     ///
     /// This is a convenience method that returns an iterator which internally
     /// just calls [`MotionProfile::next_delay`].
-    fn delays(&mut self) -> iter::DelayIter<Self> {
-        iter::DelayIter(self)
+    fn delays(&mut self) -> iter::Delays<Self> {
+        iter::Delays(self)
     }
 }
