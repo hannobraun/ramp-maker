@@ -87,4 +87,15 @@ pub trait MotionProfile: Sized {
     fn delays(&mut self) -> iter::Delays<Self> {
         iter::Delays(self)
     }
+
+    /// Return an iterator over velocity values of each step
+    ///
+    /// This is a convenience method that returns an iterator which internally
+    /// calls [`MotionProfile::next_delay`] and converts the delay to a
+    /// velocity.
+    ///
+    /// This is mainly useful for testing and debugging.
+    fn velocities(&mut self) -> iter::Velocities<Self> {
+        iter::Velocities(self)
+    }
 }
