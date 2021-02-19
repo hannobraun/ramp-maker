@@ -49,11 +49,9 @@ pub fn position_mode_must_respect_maximum_velocity(
     let max_velocity = 1000.0;
     profile.enter_position_mode(max_velocity, 200);
 
-    let min_delay = 0.001;
-
-    for delay in profile.delays() {
-        println!("delay: {}, min_delay: {}", delay, min_delay);
-        assert!(delay >= min_delay);
+    for velocity in profile.velocities() {
+        println!("velocity: {}, max velocity: {}", velocity, max_velocity);
+        assert!(velocity <= max_velocity);
     }
 }
 

@@ -110,9 +110,11 @@ mod tests {
     fn flat_should_produce_constant_velocity() {
         let mut flat = Flat::new();
 
-        flat.enter_position_mode(2.0, 200);
-        for delay in flat.delays() {
-            assert_eq!(delay, 0.5);
+        let max_velocity = 1000.0;
+        flat.enter_position_mode(max_velocity, 200);
+
+        for velocity in flat.velocities() {
+            assert_eq!(velocity, max_velocity);
         }
     }
 }
