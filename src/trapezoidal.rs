@@ -234,9 +234,10 @@ where
 
         // Determine some key facts about the current situation.
         let target_step_is_close = profile.steps_left <= steps_to_stop;
-        let reached_max_velocity = profile.delay_prev <= delay_min;
+        let above_max_velocity = profile.delay_prev < delay_min;
+        let reached_max_velocity = profile.delay_prev == delay_min;
 
-        if target_step_is_close {
+        if target_step_is_close || above_max_velocity {
             Self::RampDown
         } else if reached_max_velocity {
             Self::Plateau
@@ -364,6 +365,51 @@ mod tests {
         // regressions.
         const MIN_VELOCITY: f32 = 110.0;
         assert!(last_velocity <= MIN_VELOCITY);
+    }
+
+    #[test]
+    fn trapezoidal_should_adapt_to_changes_in_max_velocity() {
+        let mut trapezoidal = Trapezoidal::new(6000.0);
+
+        let mut accelerated = false;
+
+        // Accelerate to maximum velocity.
+        let mut prev_velocity = None;
+        let max_velocity = 1000.0;
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        for velocity in trapezoidal.velocities() {
+            if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+
+            if let Some(prev_velocity) = prev_velocity {
+                assert!(velocity > prev_velocity);
+                accelerated = true
+            }
+            prev_velocity = Some(velocity);
+        }
+
+        assert!(accelerated);
+
+        let mut decelerated = false;
+
+        // Decelerate to a lower maximum velocity.
+        let mut prev_velocity = None;
+        let max_velocity = 500.0;
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        for velocity in trapezoidal.velocities() {
+            if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+
+            if let Some(prev_velocity) = prev_velocity {
+                assert!(velocity < prev_velocity);
+                decelerated = true
+            }
+            prev_velocity = Some(velocity);
+        }
+
+        assert!(decelerated);
     }
 
     #[derive(Debug, Eq, PartialEq)]
