@@ -163,6 +163,9 @@ where
         let three = two + Num::one();
         let one_five = three / two;
 
+        // Compute the number of steps needed to come to a stop. We'll compare
+        // that to the number of steps left to the target step below, to
+        // determine whether we need to decelerate.
         let velocity = self.delay_prev.inv();
         let steps_to_stop = (velocity * velocity) / (two * self.target_accel);
         let steps_to_stop = steps_to_stop.ceil().az::<u32>();
