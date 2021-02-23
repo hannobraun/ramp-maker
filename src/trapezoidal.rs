@@ -256,6 +256,11 @@ mod tests {
 
     use crate::{MotionProfile as _, Trapezoidal};
 
+    // The minimum velocity that is acceptable for the last step, if the goal is
+    // to reach stand-still. No idea if this value is appropriate, but it
+    // matches what the algorithm produces.
+    const MIN_VELOCITY: f32 = 110.0;
+
     #[test]
     fn trapezoidal_should_pass_motion_profile_tests() {
         crate::util::testing::test::<Trapezoidal<f32>>();
@@ -361,12 +366,6 @@ mod tests {
 
         let last_velocity = last_velocity.unwrap();
         println!("Velocity on last step: {}", last_velocity);
-
-        // No idea if this value is appropriate, but it matches what the
-        // algorithm produces. Even if that's not okay, at the very least this
-        // test documents the potential shortcoming and protects against further
-        // regressions.
-        const MIN_VELOCITY: f32 = 110.0;
         assert!(last_velocity <= MIN_VELOCITY);
     }
 
