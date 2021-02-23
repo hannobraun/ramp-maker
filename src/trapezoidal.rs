@@ -172,13 +172,14 @@ where
             RampMode::Idle => {
                 return None;
             }
-            RampMode::RampUp => self.delay_prev * (Num::one() - q + addend),
+            RampMode::RampUp => {
+                let delay_next = self.delay_prev * (Num::one() - q + addend);
+                clamp_min(delay_next, delay_min)
+            }
             RampMode::RampDown => self.delay_prev * (Num::one() + q + addend),
         };
 
-        // Ensure that `delay_min <= delay_next <= delay_initial`. See the
-        // explanation following [20] in the referenced paper.
-        let delay_next = clamp_min(delay_next, delay_min);
+        // See the explanation following [20] in the referenced paper.
         let delay_next = clamp_max(delay_next, self.delay_initial);
 
         self.delay_prev = delay_next;
