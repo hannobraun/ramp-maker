@@ -212,7 +212,9 @@ where
             None => return Self::Idle,
         };
 
-        if profile.steps_left == 0 {
+        let no_steps_left = profile.steps_left == 0;
+
+        if no_steps_left {
             return Self::Idle;
         }
 
