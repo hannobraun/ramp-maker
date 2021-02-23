@@ -232,12 +232,15 @@ where
             (velocity * velocity) / (two * profile.target_accel);
         let steps_to_stop = steps_to_stop.ceil().az::<u32>();
 
-        // Determine some key facts about the current situation.
         let target_step_is_close = profile.steps_left <= steps_to_stop;
+        if target_step_is_close {
+            return Self::RampDown;
+        }
+
         let above_max_velocity = profile.delay_prev < delay_min;
         let reached_max_velocity = profile.delay_prev == delay_min;
 
-        if target_step_is_close || above_max_velocity {
+        if above_max_velocity {
             Self::RampDown
         } else if reached_max_velocity {
             Self::Plateau
