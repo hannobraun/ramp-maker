@@ -206,12 +206,6 @@ where
         + Ceil,
 {
     fn compute(profile: &Trapezoidal<Num>) -> Self {
-        // If we don't have a velocity, we can't produce a delay.
-        let delay_min = match profile.delay_min {
-            Some(delay) => delay,
-            None => return Self::Idle,
-        };
-
         let no_steps_left = profile.steps_left == 0;
         let not_moving = profile.delay_prev >= profile.delay_initial;
 
@@ -236,6 +230,18 @@ where
         if target_step_is_close {
             return Self::RampDown;
         }
+
+        let delay_min = match profile.delay_min {
+            Some(delay_min) => delay_min,
+            None => {
+                // No minimum delay means someone set max velocity to zero.
+                return if not_moving {
+                    Self::Idle
+                } else {
+                    Self::RampDown
+                };
+            }
+        };
 
         let above_max_velocity = profile.delay_prev < delay_min;
         let reached_max_velocity = profile.delay_prev == delay_min;
@@ -405,6 +411,28 @@ mod tests {
             let velocity = trapezoidal.velocities().next().unwrap();
 
             if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+
+            if let Some(prev_velocity) = prev_velocity {
+                assert!(velocity < prev_velocity);
+                decelerated = true
+            }
+            prev_velocity = Some(velocity);
+        }
+
+        assert!(decelerated);
+
+        let mut decelerated = false;
+
+        // Decelerate to stand-still.
+        let mut prev_velocity = None;
+        let max_velocity = 0.0;
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        loop {
+            let velocity = trapezoidal.velocities().next().unwrap();
+
+            if velocity <= MIN_VELOCITY {
                 break;
             }
 
