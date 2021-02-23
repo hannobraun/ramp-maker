@@ -152,9 +152,7 @@ where
         // If we don't have a velocity, we can't produce a delay.
         let delay_min = self.delay_min?;
 
-        if self.steps_left == 0 {
-            return None;
-        }
+        let mode = RampMode::compute(self);
 
         // Compute some basic numbers we're going to need for the following
         // calculations. All of this is statically known, so let's hope it
@@ -163,13 +161,6 @@ where
         let three = two + Num::one();
         let one_five = three / two;
 
-        // Compute the number of steps needed to come to a stop. We'll compare
-        // that to the number of steps left to the target step below, to
-        // determine whether we need to decelerate.
-        let velocity = self.delay_prev.inv();
-        let steps_to_stop = (velocity * velocity) / (two * self.target_accel);
-        let steps_to_stop = steps_to_stop.ceil().az::<u32>();
-
         // Compute the delay for the next step. See [22] in the referenced
         // paper.
         //
@@ -177,12 +168,12 @@ where
         // clamp the delay value further down anyway, which creates the plateau.
         let q = self.target_accel * self.delay_prev * self.delay_prev;
         let addend = one_five * q * q;
-        let delay_next = if self.steps_left > steps_to_stop {
-            // Ramping up
-            self.delay_prev * (Num::one() - q + addend)
-        } else {
-            // Ramping down
-            self.delay_prev * (Num::one() + q + addend)
+        let delay_next = match mode {
+            RampMode::Idle => {
+                return None;
+            }
+            RampMode::RampUp => self.delay_prev * (Num::one() - q + addend),
+            RampMode::RampDown => self.delay_prev * (Num::one() + q + addend),
         };
 
         // Ensure that `delay_min <= delay_next <= delay_initial`. See the
@@ -199,6 +190,50 @@ where
 
 /// The default numeric type used by [`Trapezoidal`]
 pub type DefaultNum = fixed::FixedU64<typenum::U32>;
+
+enum RampMode {
+    Idle,
+    RampUp,
+    RampDown,
+}
+
+impl RampMode {
+    fn compute<Num>(profile: &Trapezoidal<Num>) -> Self
+    where
+        Num: Copy
+            + az::Cast<u32>
+            + num_traits::One
+            + num_traits::Inv<Output = Num>
+            + ops::Add<Output = Num>
+            + ops::Div<Output = Num>
+            + Ceil,
+    {
+        if profile.steps_left == 0 {
+            return Self::Idle;
+        }
+
+        // Compute some basic numbers we're going to need for the following
+        // calculations. All of this is statically known, so let's hope it
+        // optimizes out.
+        let two = Num::one() + Num::one();
+
+        // Compute the number of steps needed to come to a stop. We'll compare
+        // that to the number of steps left to the target step below, to
+        // determine whether we need to decelerate.
+        let velocity = profile.delay_prev.inv();
+        let steps_to_stop =
+            (velocity * velocity) / (two * profile.target_accel);
+        let steps_to_stop = steps_to_stop.ceil().az::<u32>();
+
+        let target_step_is_close = profile.steps_left <= steps_to_stop;
+
+        if target_step_is_close {
+            Self::RampDown
+        } else {
+            Self::RampUp
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
