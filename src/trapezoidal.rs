@@ -149,9 +149,6 @@ where
     }
 
     fn next_delay(&mut self) -> Option<Self::Delay> {
-        // If we don't have a velocity, we can't produce a delay.
-        let delay_min = self.delay_min?;
-
         let mode = RampMode::compute(self);
 
         // Compute some basic numbers we're going to need for the following
@@ -172,7 +169,7 @@ where
             RampMode::Idle => {
                 return None;
             }
-            RampMode::RampUp => {
+            RampMode::RampUp { delay_min } => {
                 let delay_next = self.delay_prev * (Num::one() - q + addend);
                 clamp_min(delay_next, delay_min)
             }
@@ -192,14 +189,14 @@ where
 /// The default numeric type used by [`Trapezoidal`]
 pub type DefaultNum = fixed::FixedU64<typenum::U32>;
 
-enum RampMode {
+enum RampMode<Num> {
     Idle,
-    RampUp,
+    RampUp { delay_min: Num },
     RampDown,
 }
 
-impl RampMode {
-    fn compute<Num>(profile: &Trapezoidal<Num>) -> Self
+impl<Num> RampMode<Num> {
+    fn compute(profile: &Trapezoidal<Num>) -> Self
     where
         Num: Copy
             + az::Cast<u32>
@@ -209,6 +206,12 @@ impl RampMode {
             + ops::Div<Output = Num>
             + Ceil,
     {
+        // If we don't have a velocity, we can't produce a delay.
+        let delay_min = match profile.delay_min {
+            Some(delay) => delay,
+            None => return Self::Idle,
+        };
+
         if profile.steps_left == 0 {
             return Self::Idle;
         }
@@ -231,7 +234,7 @@ impl RampMode {
         if target_step_is_close {
             Self::RampDown
         } else {
-            Self::RampUp
+            Self::RampUp { delay_min }
         }
     }
 }
