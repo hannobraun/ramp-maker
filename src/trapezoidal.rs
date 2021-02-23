@@ -380,7 +380,9 @@ mod tests {
         let mut prev_velocity = None;
         let max_velocity = 1000.0;
         trapezoidal.enter_position_mode(max_velocity, 10_000);
-        for velocity in trapezoidal.velocities() {
+        loop {
+            let velocity = trapezoidal.velocities().next().unwrap();
+
             if max_velocity.abs_diff_eq(&velocity, 0.001) {
                 break;
             }
@@ -400,7 +402,9 @@ mod tests {
         let mut prev_velocity = None;
         let max_velocity = 500.0;
         trapezoidal.enter_position_mode(max_velocity, 10_000);
-        for velocity in trapezoidal.velocities() {
+        loop {
+            let velocity = trapezoidal.velocities().next().unwrap();
+
             if max_velocity.abs_diff_eq(&velocity, 0.001) {
                 break;
             }
