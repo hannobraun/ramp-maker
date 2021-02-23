@@ -160,9 +160,6 @@ where
 
         // Compute the delay for the next step. See [22] in the referenced
         // paper.
-        //
-        // We don't differentiate between acceleration and plateau here, as we
-        // clamp the delay value further down anyway, which creates the plateau.
         let q = self.target_accel * self.delay_prev * self.delay_prev;
         let addend = one_five * q * q;
         let delay_next = match mode {
@@ -173,6 +170,7 @@ where
                 let delay_next = self.delay_prev * (Num::one() - q + addend);
                 clamp_min(delay_next, delay_min)
             }
+            RampMode::Plateau => self.delay_prev,
             RampMode::RampDown => self.delay_prev * (Num::one() + q + addend),
         };
 
@@ -192,12 +190,14 @@ pub type DefaultNum = fixed::FixedU64<typenum::U32>;
 enum RampMode<Num> {
     Idle,
     RampUp { delay_min: Num },
+    Plateau,
     RampDown,
 }
 
 impl<Num> RampMode<Num>
 where
     Num: Copy
+        + PartialOrd
         + az::Cast<u32>
         + num_traits::One
         + num_traits::Inv<Output = Num>
@@ -229,10 +229,14 @@ where
             (velocity * velocity) / (two * profile.target_accel);
         let steps_to_stop = steps_to_stop.ceil().az::<u32>();
 
+        // Determine some key facts about the current situation.
         let target_step_is_close = profile.steps_left <= steps_to_stop;
+        let reached_max_velocity = profile.delay_prev <= delay_min;
 
         if target_step_is_close {
             Self::RampDown
+        } else if reached_max_velocity {
+            Self::Plateau
         } else {
             Self::RampUp { delay_min }
         }
