@@ -195,17 +195,17 @@ enum RampMode<Num> {
     RampDown,
 }
 
-impl<Num> RampMode<Num> {
-    fn compute(profile: &Trapezoidal<Num>) -> Self
-    where
-        Num: Copy
-            + az::Cast<u32>
-            + num_traits::One
-            + num_traits::Inv<Output = Num>
-            + ops::Add<Output = Num>
-            + ops::Div<Output = Num>
-            + Ceil,
-    {
+impl<Num> RampMode<Num>
+where
+    Num: Copy
+        + az::Cast<u32>
+        + num_traits::One
+        + num_traits::Inv<Output = Num>
+        + ops::Add<Output = Num>
+        + ops::Div<Output = Num>
+        + Ceil,
+{
+    fn compute(profile: &Trapezoidal<Num>) -> Self {
         // If we don't have a velocity, we can't produce a delay.
         let delay_min = match profile.delay_min {
             Some(delay) => delay,
