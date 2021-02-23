@@ -261,8 +261,7 @@ mod tests {
         let mut last_velocity = None;
 
         trapezoidal.enter_position_mode(1000.0, 200);
-        for delay in trapezoidal.delays() {
-            let velocity = 1.0 / delay;
+        for velocity in trapezoidal.velocities() {
             println!("Velocity: {}", velocity);
             last_velocity = Some(velocity);
         }
