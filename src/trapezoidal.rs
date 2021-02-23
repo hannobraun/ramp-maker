@@ -178,7 +178,7 @@ where
         let delay_next = clamp_max(delay_next, self.delay_initial);
 
         self.delay_prev = delay_next;
-        self.steps_left -= 1;
+        self.steps_left = self.steps_left.saturating_sub(1);
 
         Some(delay_next)
     }
@@ -206,13 +206,10 @@ where
         + Ceil,
 {
     fn compute(profile: &Trapezoidal<Num>) -> Self {
-        // If we don't have a velocity, we can't produce a delay.
-        let delay_min = match profile.delay_min {
-            Some(delay) => delay,
-            None => return Self::Idle,
-        };
+        let no_steps_left = profile.steps_left == 0;
+        let not_moving = profile.delay_prev >= profile.delay_initial;
 
-        if profile.steps_left == 0 {
+        if no_steps_left && not_moving {
             return Self::Idle;
         }
 
@@ -229,11 +226,27 @@ where
             (velocity * velocity) / (two * profile.target_accel);
         let steps_to_stop = steps_to_stop.ceil().az::<u32>();
 
-        // Determine some key facts about the current situation.
         let target_step_is_close = profile.steps_left <= steps_to_stop;
-        let reached_max_velocity = profile.delay_prev <= delay_min;
-
         if target_step_is_close {
+            return Self::RampDown;
+        }
+
+        let delay_min = match profile.delay_min {
+            Some(delay_min) => delay_min,
+            None => {
+                // No minimum delay means someone set max velocity to zero.
+                return if not_moving {
+                    Self::Idle
+                } else {
+                    Self::RampDown
+                };
+            }
+        };
+
+        let above_max_velocity = profile.delay_prev < delay_min;
+        let reached_max_velocity = profile.delay_prev == delay_min;
+
+        if above_max_velocity {
             Self::RampDown
         } else if reached_max_velocity {
             Self::Plateau
@@ -245,9 +258,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use approx::assert_abs_diff_eq;
+    use approx::{assert_abs_diff_eq, AbsDiffEq as _};
 
     use crate::{MotionProfile as _, Trapezoidal};
+
+    // The minimum velocity that is acceptable for the last step, if the goal is
+    // to reach stand-still. No idea if this value is appropriate, but it
+    // matches what the algorithm produces.
+    const MIN_VELOCITY: f32 = 110.0;
 
     #[test]
     fn trapezoidal_should_pass_motion_profile_tests() {
@@ -334,9 +352,19 @@ mod tests {
     fn trapezoidal_should_come_to_stop_with_last_step() {
         let mut trapezoidal = Trapezoidal::new(6000.0);
 
+        let max_velocity = 1000.0;
+
+        // Accelerate to maximum velocity.
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        for velocity in trapezoidal.velocities() {
+            if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+        }
+
         let mut last_velocity = None;
 
-        trapezoidal.enter_position_mode(1000.0, 200);
+        trapezoidal.enter_position_mode(max_velocity, 0);
         for velocity in trapezoidal.velocities() {
             println!("Velocity: {}", velocity);
             last_velocity = Some(velocity);
@@ -344,13 +372,78 @@ mod tests {
 
         let last_velocity = last_velocity.unwrap();
         println!("Velocity on last step: {}", last_velocity);
-
-        // No idea if this value is appropriate, but it matches what the
-        // algorithm produces. Even if that's not okay, at the very least this
-        // test documents the potential shortcoming and protects against further
-        // regressions.
-        const MIN_VELOCITY: f32 = 110.0;
         assert!(last_velocity <= MIN_VELOCITY);
+    }
+
+    #[test]
+    fn trapezoidal_should_adapt_to_changes_in_max_velocity() {
+        let mut trapezoidal = Trapezoidal::new(6000.0);
+
+        let mut accelerated = false;
+
+        // Accelerate to maximum velocity.
+        let mut prev_velocity = None;
+        let max_velocity = 1000.0;
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        loop {
+            let velocity = trapezoidal.velocities().next().unwrap();
+
+            if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+
+            if let Some(prev_velocity) = prev_velocity {
+                assert!(velocity > prev_velocity);
+                accelerated = true
+            }
+            prev_velocity = Some(velocity);
+        }
+
+        assert!(accelerated);
+
+        let mut decelerated = false;
+
+        // Decelerate to a lower maximum velocity.
+        let mut prev_velocity = None;
+        let max_velocity = 500.0;
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        loop {
+            let velocity = trapezoidal.velocities().next().unwrap();
+
+            if max_velocity.abs_diff_eq(&velocity, 0.001) {
+                break;
+            }
+
+            if let Some(prev_velocity) = prev_velocity {
+                assert!(velocity < prev_velocity);
+                decelerated = true
+            }
+            prev_velocity = Some(velocity);
+        }
+
+        assert!(decelerated);
+
+        let mut decelerated = false;
+
+        // Decelerate to stand-still.
+        let mut prev_velocity = None;
+        let max_velocity = 0.0;
+        trapezoidal.enter_position_mode(max_velocity, 10_000);
+        loop {
+            let velocity = trapezoidal.velocities().next().unwrap();
+
+            if velocity <= MIN_VELOCITY {
+                break;
+            }
+
+            if let Some(prev_velocity) = prev_velocity {
+                assert!(velocity < prev_velocity);
+                decelerated = true
+            }
+            prev_velocity = Some(velocity);
+        }
+
+        assert!(decelerated);
     }
 
     #[derive(Debug, Eq, PartialEq)]
