@@ -28,7 +28,7 @@ git switch -c publish-a.b.c
 
 4. Update changelog: Go through all pull requests since the last release and mention the relevant ones. Use existing changelog entries as the template. Commit this to the repository.
 
-5. Update version in top-level `Cargo.toml` and README.md. Commit changes.
+5. Update version in `Cargo.toml` and README.md. Commit changes.
 
 6. Push branch, open a pull request. This makes sure the CI runs and gives other maintainers a chance to weigh in.
 
