@@ -21,9 +21,6 @@ pub trait Sqrt {
 /// Defines an interface to the `ceil` operator for rounding up
 pub trait Ceil {
     /// Round up to the next largest integer
-    ///
-    /// This method can't be called `ceil`, as that would conflict with the
-    /// `ceil` methods of `f32` and `f64`.
     fn ceil(self) -> Self;
 }
 

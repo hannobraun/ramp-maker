@@ -24,8 +24,8 @@ use crate::{
 /// This implementation makes the following simplifications:
 /// - The unit of time used is left to the user (see "Unit of Time" below), so
 ///   the frequency variable `F` is ignored.
-/// - The initial velocity `v0` is assumed to be zero, making this
-///   implementation suitable only for starting and stopping at a stand-still.
+/// - The initial velocity `v0` is assumed to be zero, meaning you can't
+///   construct an instance of this struct to take over an ongoing movement.
 ///
 /// Create an instance of this struct using [`Trapezoidal::new`], then use the
 /// API defined by [`MotionProfile`] (which this struct implements) to generate
@@ -60,12 +60,12 @@ use crate::{
 /// `fixed` crate. Please note that this code uses a very naive approach
 /// regarding its use of numeric types, which does not play well lower-accuracy
 /// fixed-point types. Please be very careful when using any other other type
-/// than the default. The code might not even generate a proper trapezoidal
-/// ramp, if accuracy is too low!
+/// than the default or a floating-point type. The code might not even generate
+/// a proper trapezoidal ramp, if accuracy is too low!
 ///
-/// Please note that by default, support for `f32`/`f64` is not available. Check
-/// out the section on Cargo features from the documentation in the root module
-/// to learn how to enable it.
+/// Please note that you need to enable support for `f32`/`f64` explicitly.
+/// Check out the section on Cargo features from the documentation in the root
+/// module for more information.
 pub struct Trapezoidal<Num = DefaultNum> {
     delay_min: Option<Num>,
     delay_initial: Num,
