@@ -30,7 +30,7 @@ Add Step/Dir to your `Cargo.toml` like this:
 
 ``` toml
 [dependencies.ramp-maker]
-version = "0.1" # always use the latest version here
+version = "0.2" # always use the latest version here
 ```
 
 
