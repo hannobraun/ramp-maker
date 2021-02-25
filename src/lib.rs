@@ -3,6 +3,12 @@
 //! RampMaker is a library that generates motion profiles for stepper motors. It
 //! can be used independently, or together with [Step/Dir].
 //!
+//! The main API for motion profiles is defined by the [`MotionProfile`] trait.
+//! The following implementations of this trait are available:
+//!
+//! - [`Flat`]: Not for serious use, but might be useful for testing.
+//! - [`Trapezoidal`]: Constant-acceleration motion profile.
+//!
 //! Trinamic have [an overview over motion profiles][overview] on their website.
 //!
 //! # Cargo Features
@@ -13,11 +19,11 @@
 //! you're using the default fixed-point types, you're not affected by this).
 //!
 //! If you need full support for `f32`/`f64`, you have the following options:
-//! - Enable support for the standard library via the `std` feature. This
+//! - Enable support for the standard library via the **`std`** feature. This
 //!   obviously only works, if the standard library is available for your
 //!   target, and you want to use it.
-//! - Enable the `libm` feature. This provides the require square root support
-//!   via [libm].
+//! - Enable the **`libm`** feature. This provides the require square root
+//!   support via [libm].
 //!
 //! [Step/Dir]: https://crates.io/crates/step-dir
 //! [overview]: https://www.trinamic.com/technology/motion-control-technology/
@@ -63,8 +69,7 @@ pub trait MotionProfile: Sized {
     ///
     /// Produces the delay for the next step. The unit of this delay is
     /// implementation-defined. `None` is returned, if no more steps need to be
-    /// taken. This happens when reaching the target step in position mode, or
-    /// if velocity is set to zero in either position or velocity mode.
+    /// taken. This should only happen, if the motion has ended.
     ///
     /// Please note that motion profiles yield one value per step, even though
     /// only n-1 delay values are needed for n steps. The additional delay value
