@@ -1,7 +1,7 @@
 //! RampMaker - Stepper Acceleration Ramp Generator
 //!
 //! RampMaker is a library that generates motion profiles for stepper motors. It
-//! can be used independently, or together with [Step/Dir].
+//! can be used independently, or together with [Stepper].
 //!
 //! The main API for motion profiles is defined by the [`MotionProfile`] trait.
 //! The following implementations of this trait are available:
@@ -25,7 +25,7 @@
 //! - Enable the **`libm`** feature. This provides the require square root
 //!   support via [libm].
 //!
-//! [Step/Dir]: https://crates.io/crates/step-dir
+//! [Stepper]: https://crates.io/crates/stepper
 //! [overview]: https://www.trinamic.com/technology/motion-control-technology/
 //! [libm]: https://crates.io/crates/libm
 
