@@ -26,7 +26,7 @@ RampMaker is maintained by [@hannobraun].
 
 RampMaker is a library written in Rust and designed for use in Rust projects. It will run on any platform supported by Rust, including microcontrollers.
 
-Add Step/Dir to your `Cargo.toml` like this:
+Add RampMaker to your `Cargo.toml` like this:
 
 ``` toml
 [dependencies.ramp-maker]
@@ -53,4 +53,4 @@ See [LICENSE.md] for full details.
 [stepgen]: https://crates.io/crates/stepgen
 [@hannobraun]: https://github.com/hannobraun
 [Zero Clause BSD License]: https://opensource.org/licenses/0BSD
-[LICENSE.md]: https://github.com/flott-motion/step-dir/blob/main/LICENSE.md
+[LICENSE.md]: https://github.com/flott-motion/ramp-maker/blob/main/LICENSE.md
