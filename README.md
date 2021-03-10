@@ -8,7 +8,7 @@
 
 RampMaker provides implementations of stepper motor acceleration profiles, as well as a trait to abstract over them. Right now only a trapezoidal profile (plus a flat profile for testing) is supported.
 
-RampMaker is part of the [Flott] motion control toolkit. Also check out [Step/Dir], the universal stepper motor interface.
+RampMaker is part of the [Flott] motion control toolkit. Also check out [Stepper], the universal stepper motor interface.
 
 If you're looking for an alternative to this library, you might like [stepgen].
 
@@ -26,7 +26,7 @@ RampMaker is maintained by [@hannobraun].
 
 RampMaker is a library written in Rust and designed for use in Rust projects. It will run on any platform supported by Rust, including microcontrollers.
 
-Add Step/Dir to your `Cargo.toml` like this:
+Add RampMaker to your `Cargo.toml` like this:
 
 ``` toml
 [dependencies.ramp-maker]
@@ -49,8 +49,8 @@ See [LICENSE.md] for full details.
 
 
 [Flott]: https://flott-motion.org/
-[Step/Dir]: https://crates.io/crates/step-dir
+[Stepper]: https://crates.io/crates/stepper
 [stepgen]: https://crates.io/crates/stepgen
 [@hannobraun]: https://github.com/hannobraun
 [Zero Clause BSD License]: https://opensource.org/licenses/0BSD
-[LICENSE.md]: https://github.com/flott-motion/step-dir/blob/main/LICENSE.md
+[LICENSE.md]: https://github.com/flott-motion/ramp-maker/blob/main/LICENSE.md

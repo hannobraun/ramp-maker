@@ -22,7 +22,7 @@ fn main() {
         // RampMaker doesn't care how you actually interface with the stepper
         // motor, so we use this fake `step` method to demonstrate the
         // principle. If you haven't settled on a solution, why not check out
-        // Step/Dir, another library from the Flott toolkit?
+        // Stepper, another library from the Flott toolkit?
         step();
 
         // Wait until the delay is over before making the next step.
