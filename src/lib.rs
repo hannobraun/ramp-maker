@@ -30,7 +30,7 @@
 //! [libm]: https://crates.io/crates/libm
 
 #![cfg_attr(all(not(test), not(feature = "std")), no_std)]
-#![deny(missing_docs, broken_intra_doc_links)]
+#![deny(missing_docs, rustdoc::broken_intra_doc_links)]
 
 pub mod flat;
 pub mod iter;
