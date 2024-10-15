@@ -6,6 +6,9 @@
 
 ## About
 
+**This library might not be suited for most projects these days. See _Status_
+below.**
+
 RampMaker provides implementations of stepper motor acceleration profiles, as
 well as a trait to abstract over them. Right now only a trapezoidal profile
 (plus a flat profile for testing) is supported.
@@ -15,10 +18,11 @@ looking for an alternative to this library, you might like [stepgen].
 
 ## Status
 
-Active development on Stepper has ceased, but the project is still passively
-maintained.
+RampMaker has only been passively maintained for many years now. There are no
+known users and no contributions. I don't even know if the code still works.
 
-The library is usable, but far from mature.
+If you need something like this, you might be better off looking for
+alternatives.
 
 ## Usage
 
